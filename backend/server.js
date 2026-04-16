@@ -39,7 +39,7 @@ const upload = multer({ storage: storage });
 
 // --- CONEXIÓN BASE DE DATOS ---
 // CAMBIO 4: Ruta de la base de datos (Importante para el "Disk" de Render si lo usas)
-const dbPath = path.join(dbDir, 'tarifas.db');
+const dbPath = path.join('/data', 'tarifas.db');;
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) return console.error("Error al abrir DB:", err.message);
     console.log("Conectado a SQLite exitosamente.");
