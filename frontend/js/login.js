@@ -1,5 +1,5 @@
 // CONFIGURACIÓN: Cambia esta URL cuando ya tengas la de Render
-const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
+const API_URL = "https://sistema-transporte-tarifas-1.onrender.com"; 
 
 // --- PROTECCIÓN DE CAMPOS AL REGRESAR ---
 window.addEventListener('pageshow', function (event) {

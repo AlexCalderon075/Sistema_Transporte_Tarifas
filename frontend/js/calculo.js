@@ -1,4 +1,4 @@
-const API_URL = "https://sistema-transporte-tarifas.onrender.com"; // Cambiar por tu URL de Render después
+const API_URL = "https://sistema-transporte-tarifas-1.onrender.com"; // Cambiar por tu URL de Render después
 let costoGlobal = 0, utilidadGlobal = 0, tarifaGlobal = 0;
 
 // Protección antiback

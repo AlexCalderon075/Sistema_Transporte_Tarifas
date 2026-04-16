@@ -1,5 +1,5 @@
 // CONFIGURACIÓN: Cambia esta URL por la de Render cuando la tengas
-const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
+const API_URL = "https://sistema-transporte-tarifas-1.onrender.com"; 
 
 // --- 1. PROTECCIÓN ANTIBACK (SEGURIDAD TOTAL) ---
 // Se activa incluso si el usuario usa las flechas del navegador
