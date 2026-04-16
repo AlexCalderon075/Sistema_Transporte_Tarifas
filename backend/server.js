@@ -3,33 +3,32 @@ const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
-const fs = require('fs'); // Nuevo: para asegurar que las carpetas existan
+const fs = require('fs'); // Nuevo: para asegurar que existan las carpetas
 
 const app = express();
-// CAMBIO 1: Render asigna el puerto automáticamente mediante process.env.PORT
+// CAMBIO 1: Puerto dinámico para Render
 const PORT = process.env.PORT || 3000;
 
 // --- CONFIGURACIÓN ---
 app.use(cors());
 app.use(express.json());
 
-// CAMBIO 2: Asegurar que las carpetas de datos y subidas existan en el servidor
-const uploadDir = path.join(__dirname, 'uploads');
+// CAMBIO 2: Asegurar que existan las carpetas de uploads y database al arrancar
+// Esto evita errores en Render si las carpetas no se subieron a GitHub
+const uploadsDir = path.join(__dirname, 'uploads');
 const dbDir = path.join(__dirname, 'database');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 
-// CAMBIO 3: Ajuste de rutas estáticas (Render suele usar una estructura plana o específica)
-// Si tu carpeta de frontend está al mismo nivel que server.js, usa './frontend'
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
-});
-app.use('/uploads', express.static(uploadDir));
+// CAMBIO 3: Servir archivos estáticos del frontend
+// Como el server está en /backend, usamos '../frontend'
+app.use(express.static(path.join(__dirname, '../frontend')));
+app.use('/uploads', express.static(uploadsDir));
 
 // --- CONFIGURACIÓN DE ALMACENAMIENTO DE FOTOS ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, uploadDir);
+        cb(null, uploadsDir);
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname));
@@ -38,41 +37,36 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // --- CONEXIÓN BASE DE DATOS ---
-// CAMBIO 4: Ruta de la base de datos (Importante para el "Disk" de Render si lo usas)
-const dbPath = path.join('/data', 'tarifas.db');;
+// CAMBIO 4: Ruta absoluta para la base de datos
+const dbPath = path.join(dbDir, 'tarifas.db');
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) return console.error("Error al abrir DB:", err.message);
     console.log("Conectado a SQLite exitosamente.");
 });
 
-// Inicialización de tablas (Tu código original se mantiene)
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT,
-        telefono TEXT,
-        correo TEXT UNIQUE,
-        tarjeta_id TEXT,
-        password TEXT,
-        foto TEXT
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS historial_calculos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        fecha TEXT, origen TEXT, destino TEXT, unidad TEXT, 
-        tipo_viaje TEXT, tipo_caja TEXT, km REAL, peso REAL, 
-        costo_operativo REAL, utilidad REAL, tarifa_final REAL, 
-        usuario_nombre TEXT, dias_viaje INTEGER, costo_recoleccion REAL, 
-        con_transfer TEXT, moneda TEXT, tipo_operacion TEXT, 
-        monto_casetas REAL, precio_diesel REAL, rendimiento REAL, 
-        porcentaje_utilidad REAL, tarjeta_operador TEXT,
-        carga_laboral REAL, mantenimiento REAL, llantas REAL, 
-        seguro_tracto REAL, seguro_caja REAL, depreciacion REAL, 
-        rastreo_satelital REAL, diversos_trans REAL, 
-        administracion REAL, infraestructura REAL, direccion_ogoi REAL
-    )`);
-});
+// --- TABLAS (Igual que antes) ---
+db.run(`CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT, telefono TEXT, correo TEXT UNIQUE,
+    tarjeta_id TEXT, password TEXT, foto TEXT
+)`);
 
-// --- RUTAS API ---
+db.run(`CREATE TABLE IF NOT EXISTS historial_calculos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fecha TEXT, origen TEXT, destino TEXT, unidad TEXT, 
+    tipo_viaje TEXT, tipo_caja TEXT, km REAL, peso REAL, 
+    costo_operativo REAL, utilidad REAL, tarifa_final REAL, 
+    usuario_nombre TEXT, dias_viaje INTEGER, costo_recoleccion REAL, 
+    con_transfer TEXT, moneda TEXT, tipo_operacion TEXT, 
+    monto_casetas REAL, precio_diesel REAL, rendimiento REAL, 
+    porcentaje_utilidad REAL, tarjeta_operador TEXT,
+    carga_laboral REAL, mantenimiento REAL, llantas REAL, 
+    seguro_tracto REAL, seguro_caja REAL, depreciacion REAL, 
+    rastreo_satelital REAL, diversos_trans REAL, 
+    administracion REAL, infraestructura REAL, direccion_ogoi REAL
+)`);
+
+// --- RUTAS API (Sin cambios necesarios) ---
 
 app.post('/api/historial', (req, res) => {
     const d = req.body;
@@ -140,28 +134,14 @@ app.put('/api/usuario/actualizar/:nombreOriginal', upload.single('fotoArchivo'),
 });
 
 app.get('/api/historial', (req, res) => {
-    const nombreUsuario = req.query.usuario; 
-    if (!nombreUsuario) return res.status(400).json({ error: "Falta usuario." });
-
-    const sql = `SELECT * FROM historial_calculos WHERE usuario_nombre = ? ORDER BY id DESC`;
-    db.all(sql, [nombreUsuario], (err, rows) => {
+    const sql = `SELECT * FROM historial_calculos ORDER BY id DESC`;
+    db.all(sql, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
 });
 
-// CAMBIO 5: Middleware de Cache y Manejo de rutas de Frontend (SPA)
-app.use((req, res, next) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    next();
-});
-
-// Esto asegura que si refrescas la página en una ruta que no existe, te mande al index
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-});
-
-// CAMBIO 6: Host 0.0.0.0 es necesario para que Render pueda acceder al servicio
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+// CAMBIO 5: Ajuste de mensaje de log para Render
+app.listen(PORT, () => {
+    console.log(`Servidor activo en puerto ${PORT}`);
 });

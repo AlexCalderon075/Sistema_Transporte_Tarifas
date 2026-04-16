@@ -1,22 +1,3 @@
-// --- PROTECCIÓN DE CAMPOS AL REGRESAR ---
-window.addEventListener('pageshow', function (event) {
-    // 1. Intentamos resetear el formulario si existe
-    const formulario = document.getElementById('formLogin');
-    if (formulario) {
-        formulario.reset();
-    }
-
-    // 2. Limpieza manual reforzada (solo borra el CONTENIDO, no el BOTÓN)
-    const campoCorreo = document.getElementById('loginCorreo');
-    const campoPass = document.getElementById('loginPass');
-
-    if (campoCorreo) campoCorreo.value = ""; 
-    if (campoPass) campoPass.value = "";
-    
-    console.log("Campos de login limpiados automáticamente.");
-});
-
-// --- LÓGICA DE LOGIN EXISTENTE ---
 document.getElementById('formLogin').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -24,19 +5,18 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
     const password = document.getElementById('loginPass').value;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/api/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ correo, password })
-});
+        const res = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, password })
+        });
+
         const data = await res.json();
 
         if (res.ok) {
-            // Guardamos el nombre
+            // Guardamos el nombre del usuario para mostrarlo en el Dashboard
             localStorage.setItem('usuarioNombre', data.usuario.nombre);
-            
-            // IMPORTANTE: Usamos replace para que el login no se quede en el historial
-            window.location.replace('dashboard.html');
+            window.location.href = 'dashboard.html';
         } else {
             alert("Error: " + data.error);
         }
