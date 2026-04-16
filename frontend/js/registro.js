@@ -1,3 +1,6 @@
+// CONFIGURACIÓN: Cambia esta URL cuando ya tengas la de Render
+const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
+
 document.getElementById('formRegistro').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -14,7 +17,7 @@ document.getElementById('formRegistro').addEventListener('submit', async (e) => 
     }
 
     try {
-        const res = await fetch('http://localhost:3000/api/registro', {
+        const res = await fetch(`${API_URL}/api/registro`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ nombre, telefono, correo, tarjeta_id: tarjeta, password: pass })
@@ -23,7 +26,7 @@ document.getElementById('formRegistro').addEventListener('submit', async (e) => 
         const data = await res.json();
         if (res.ok) {
             alert(data.mensaje);
-            window.location.href = 'index.html';
+            window.location.replace('index.html');
         } else {
             alert("Error: " + data.error);
         }

@@ -1,8 +1,15 @@
+const API_URL = "https://sistema-transporte-tarifas.onrender.com"; // Cambiar por tu URL de Render después
 let costoGlobal = 0, utilidadGlobal = 0, tarifaGlobal = 0;
+
+// Protección antiback
+window.addEventListener('pageshow', function (event) {
+    if (!localStorage.getItem('usuarioNombre')) {
+        window.location.replace('index.html');
+    }
+});
 
 function realizarCalculo() {
     try {
-        // --- 1. CAPTURA DE DATOS ---
         const km = parseFloat(document.getElementById('txtKm').value) || 0;
         const rend = parseFloat(document.getElementById('txtRendimiento').value) || 1;
         const precioD = parseFloat(document.getElementById('txtDieselPrecio').value) || 0;
@@ -11,24 +18,18 @@ function realizarCalculo() {
         const porcUtilidad = (parseFloat(document.getElementById('txtUtilidadPorcentaje').value) || 0) / 100;
         const dias = parseInt(document.getElementById('txtDiasViaje').value) || 1;
 
-        // --- 2. CÁLCULO DE INSUMOS DIRECTOS ---
         const costoDiesel = (km / rend) * precioD;
         const sueldoOperador = km * 2.5; 
         const viaticos = dias * 500;
         const costoTransfer = document.getElementById('rbConTransfer').checked ? 1500 : 0;
 
-        // --- 3. COSTOS VARIABLES (POR KM) ---
         const subtotalVariables = (km * 1.10) + (km * 0.75) + (km * 1.50) + (km * 0.20);
-
-        // --- 4. COSTOS FIJOS (POR DÍA) ---
         const subtotalFijos = (dias * 120) + (dias * 60) + (dias * 35) + (dias * 200) + (dias * 150) + (dias * 100) + (dias * 180);
 
-        // --- 5. SUMATORIA ---
         costoGlobal = costoDiesel + casetas + sueldoOperador + viaticos + recolecciones + costoTransfer + subtotalVariables + subtotalFijos;
         utilidadGlobal = costoGlobal * porcUtilidad;
         tarifaGlobal = costoGlobal + utilidadGlobal;
 
-        // --- 6. MONEDA ---
         const esPesos = document.getElementById('rbPesos').checked;
         const moneda = esPesos ? "MXN" : "USD";
         const valorFinal = esPesos ? tarifaGlobal : tarifaGlobal / 17.5;
@@ -79,7 +80,7 @@ async function guardarDatos() {
     };
 
     try {
-        const res = await fetch('http://localhost:3000/api/historial', {
+        const res = await fetch(`${API_URL}/api/historial`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datos)

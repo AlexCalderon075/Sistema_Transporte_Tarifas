@@ -1,11 +1,23 @@
+// CONFIGURACIÓN: Cambia esta URL por la de Render cuando la tengas
+const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
+
+// --- 1. PROTECCIÓN ANTIBACK (SEGURIDAD TOTAL) ---
+// Se activa incluso si el usuario usa las flechas del navegador
+window.addEventListener('pageshow', function (event) {
+    const usuario = localStorage.getItem('usuarioNombre');
+    if (!usuario) {
+        // Si no hay sesión, lo expulsamos sin dejar rastro en el historial
+        window.location.replace('index.html');
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Recuperar el nombre del usuario desde el almacenamiento local
+    // 1. Recuperar el nombre del usuario
     const nombreUsuario = localStorage.getItem('usuarioNombre');
 
-    // 2. Verificar si el usuario está autenticado
+    // 2. Verificar autenticación al cargar
     if (!nombreUsuario) {
-        // Si no hay datos, lo mandamos de vuelta al login por seguridad
-        window.location.href = 'index.html';
+        window.location.replace('index.html');
         return;
     }
 
@@ -16,10 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Función para salir del sistema
+// --- 3. FUNCIÓN PARA SALIR DEL SISTEMA ---
 function cerrarSesion() {
-    // Borramos los datos de la sesión
-    localStorage.removeItem('usuarioNombre');
-    // Redirigimos al inicio
-    window.location.href = 'index.html';
+    // Borramos todos los datos (nombre, fotos temporales, etc.)
+    localStorage.clear();
+    
+    console.log("Cerrando sesión y protegiendo historial...");
+    
+    // Redirigimos usando replace para que el login ocupe el lugar del dashboard
+    window.location.replace('index.html');
 }

@@ -1,13 +1,12 @@
+const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
 let cotizacionSeleccionada = null;
 
-// Formateador de moneda (con corrección de miles)
 function fM(v) {
     let n = parseFloat(v) || 0;
     if (n > 0 && n < 200) n *= 1000;
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
 }
 
-// Función para llenar un campo de forma segura (evita que el botón "muera")
 function llenar(id, valor) {
     const el = document.getElementById(id);
     if (el) el.innerText = valor;
@@ -16,7 +15,7 @@ function llenar(id, valor) {
 async function cargarHistorial() {
     const cuerpo = document.getElementById('cuerpoHistorial');
     try {
-        const res = await fetch('http://localhost:3000/api/historial');
+        const res = await fetch(`${API_URL}/api/historial`);
         const datos = await res.json();
         cuerpo.innerHTML = '';
         datos.forEach(c => {

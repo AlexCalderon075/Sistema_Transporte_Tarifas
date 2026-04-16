@@ -1,9 +1,11 @@
+const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
+
 document.addEventListener('DOMContentLoaded', async () => {
     const nombreUsuario = localStorage.getItem('usuarioNombre');
-    if (!nombreUsuario) { window.location.href = 'index.html'; return; }
+    if (!nombreUsuario) { window.location.replace('index.html'); return; }
 
     try {
-        const res = await fetch(`http://localhost:3000/api/usuario/${encodeURIComponent(nombreUsuario)}`);
+        const res = await fetch(`${API_URL}/api/usuario/${encodeURIComponent(nombreUsuario)}`);
         const data = await res.json();
 
         if (res.ok) {
@@ -13,8 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.getElementById('perfTarjeta').value = data.tarjeta_id || '';
             
             if (data.foto) {
-                // Si la ruta no es una URL completa, le pegamos el servidor
-                const rutaFoto = data.foto.startsWith('http') ? data.foto : `http://localhost:3000${data.foto}`;
+                const rutaFoto = data.foto.startsWith('http') ? data.foto : `${API_URL}${data.foto}`;
                 document.getElementById('imgPerfil').src = rutaFoto;
             }
         }
@@ -31,20 +32,19 @@ document.getElementById('formPerfil').addEventListener('submit', async (e) => {
     formData.append('telefono', document.getElementById('perfTelefono').value);
     formData.append('tarjeta_id', document.getElementById('perfTarjeta').value);
     
-    // Si el usuario eligió un archivo, se adjunta. Si no, mandamos la ruta actual.
     if (fotoInput.files[0]) {
         formData.append('fotoArchivo', fotoInput.files[0]);
     } else {
         const srcActual = document.getElementById('imgPerfil').src;
-        // Solo mandamos la parte relativa (/uploads/...)
-        const rutaRelativa = srcActual.replace('http://localhost:3000', '');
+        // Limpiamos la URL para quedarnos solo con /uploads/...
+        const rutaRelativa = srcActual.replace(API_URL, '');
         formData.append('fotoExistente', rutaRelativa);
     }
 
     try {
-        const res = await fetch(`http://localhost:3000/api/usuario/actualizar/${encodeURIComponent(nombreOriginal)}`, {
+        const res = await fetch(`${API_URL}/api/usuario/actualizar/${encodeURIComponent(nombreOriginal)}`, {
             method: 'PUT',
-            body: formData // Importante: FormData no lleva headers de Content-Type manuales
+            body: formData 
         });
 
         if (res.ok) {

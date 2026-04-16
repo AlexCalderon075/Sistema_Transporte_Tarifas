@@ -1,3 +1,15 @@
+// CONFIGURACIÓN: Cambia esta URL cuando ya tengas la de Render
+const API_URL = "https://sistema-transporte-tarifas.onrender.com"; 
+
+// --- PROTECCIÓN DE CAMPOS AL REGRESAR ---
+window.addEventListener('pageshow', function (event) {
+    const formulario = document.getElementById('formLogin');
+    if (formulario) formulario.reset();
+    if (document.getElementById('loginCorreo')) document.getElementById('loginCorreo').value = "";
+    if (document.getElementById('loginPass')) document.getElementById('loginPass').value = "";
+});
+
+// --- LÓGICA DE LOGIN ---
 document.getElementById('formLogin').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -5,7 +17,7 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
     const password = document.getElementById('loginPass').value;
 
     try {
-        const res = await fetch('http://localhost:3000/api/login', {
+        const res = await fetch(`${API_URL}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ correo, password })
@@ -14,9 +26,9 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
         const data = await res.json();
 
         if (res.ok) {
-            // Guardamos el nombre del usuario para mostrarlo en el Dashboard
             localStorage.setItem('usuarioNombre', data.usuario.nombre);
-            window.location.href = 'dashboard.html';
+            // Usamos replace para mayor seguridad en el historial
+            window.location.replace('dashboard.html');
         } else {
             alert("Error: " + data.error);
         }
@@ -25,8 +37,11 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
     }
 });
 
-// Extra: Mostrar/Ocultar contraseña
-document.getElementById('showPass').addEventListener('change', function() {
-    const passInput = document.getElementById('loginPass');
-    passInput.type = this.checked ? 'text' : 'password';
-});
+// Mostrar/Ocultar contraseña
+const checkShow = document.getElementById('showPass');
+if (checkShow) {
+    checkShow.addEventListener('change', function() {
+        const passInput = document.getElementById('loginPass');
+        passInput.type = this.checked ? 'text' : 'password';
+    });
+}
