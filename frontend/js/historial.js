@@ -15,36 +15,13 @@ function llenar(id, valor) {
 
 async function cargarHistorial() {
     const cuerpo = document.getElementById('cuerpoHistorial');
-    
-    // 1. Sacamos el nombre que guardamos en el Login
-    const usuarioLogueado = localStorage.getItem('usuarioNombre');
-
-    // Si por algo no hay nombre (no ha iniciado sesión), lo mandamos al login
-    if (!usuarioLogueado) {
-        alert("Debes iniciar sesión primero.");
-        window.location.href = 'index.html'; // O el nombre de tu archivo de login
-        return;
-    }
-
     try {
-        // 2. Le pasamos el nombre al servidor a través de la URL (?usuario=...)
-        const url = `http://localhost:3000/api/historial?usuario=${encodeURIComponent(usuarioLogueado)}`;
-        const res = await fetch(url);
+        const res = await fetch('http://localhost:3000/api/historial');
         const datos = await res.json();
-        
-        cuerpo.innerHTML = ''; // Limpiamos la tabla
-        
-        // 3. Dibujamos solo los datos recibidos
+        cuerpo.innerHTML = '';
         datos.forEach(c => {
             const fila = document.createElement('tr');
-            fila.innerHTML = `
-                <td>${c.id}</td>
-                <td>${c.fecha}</td>
-                <td>${c.origen}</td>
-                <td>${c.destino}</td>
-                <td><b>${fM(c.tarifa_final)}</b></td>
-            `;
-            
+            fila.innerHTML = `<td>${c.id}</td><td>${c.fecha}</td><td>${c.origen}</td><td>${c.destino}</td><td><b>${fM(c.tarifa_final)}</b></td>`;
             fila.onclick = () => {
                 cotizacionSeleccionada = c;
                 document.querySelectorAll('tr').forEach(t => t.style.background = "transparent");
@@ -52,10 +29,9 @@ async function cargarHistorial() {
             };
             cuerpo.appendChild(fila);
         });
-    } catch (e) { 
-        console.error("Error al cargar el historial:", e); 
-    }
+    } catch (e) { console.error("Error al cargar:", e); }
 }
+
 function generarPDF() {
     if (!cotizacionSeleccionada) return alert("Selecciona una fila primero.");
     const d = cotizacionSeleccionada;
@@ -102,11 +78,5 @@ function generarPDF() {
         content.style.display = 'none';
     });
 }
-// Seguridad: Si no hay sesión, expulsar y no dejar volver atrás
-window.addEventListener('pageshow', function (event) {
-    if (!localStorage.getItem('usuarioNombre')) {
-        window.location.replace('index.html');
-    }
-});
 
 document.addEventListener('DOMContentLoaded', cargarHistorial);

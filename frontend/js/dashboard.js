@@ -1,30 +1,25 @@
-// 1. Bloqueo inmediato (esto corre apenas carga la página o al dar "atrás")
-window.addEventListener('pageshow', function (event) {
-    const usuario = localStorage.getItem('usuarioNombre');
-    if (!usuario) {
-        // .replace borra la página del historial para que no puedan volver
-        window.location.replace('index.html');
-    }
-});
-
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Recuperar el nombre del usuario desde el almacenamiento local
     const nombreUsuario = localStorage.getItem('usuarioNombre');
 
-    // Segunda capa de seguridad
+    // 2. Verificar si el usuario está autenticado
     if (!nombreUsuario) {
-        window.location.replace('index.html');
+        // Si no hay datos, lo mandamos de vuelta al login por seguridad
+        window.location.href = 'index.html';
         return;
     }
 
+    // 3. Mostrar el nombre en el encabezado
     const bienvenidaElemento = document.getElementById('bienvenida');
     if (bienvenidaElemento) {
         bienvenidaElemento.innerText = `Bienvenido, ${nombreUsuario}`;
     }
 });
 
-// 2. Función para salir (Actualizada con .replace)
+// Función para salir del sistema
 function cerrarSesion() {
-    localStorage.clear();
-    console.log("Sesión cerrada");
-    window.location.replace('index.html');
+    // Borramos los datos de la sesión
+    localStorage.removeItem('usuarioNombre');
+    // Redirigimos al inicio
+    window.location.href = 'index.html';
 }

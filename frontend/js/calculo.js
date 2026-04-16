@@ -87,24 +87,3 @@ async function guardarDatos() {
         if (res.ok) alert("¡Cotización detallada guardada!");
     } catch (e) { alert("Error al guardar."); }
 }
-
-// --- PROTECCIÓN ANTIBACK (SEGURIDAD TOTAL) ---
-window.addEventListener('pageshow', function (event) {
-    // Si no hay usuario en el storage, lo sacamos de aquí inmediatamente
-    const usuario = localStorage.getItem('usuarioNombre');
-    if (!usuario) {
-        // .replace borra la huella del historial para que no pueda volver a entrar
-        window.location.replace('index.html'); 
-    }
-});
-
-// Verificación secundaria al cargar el DOM
-document.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('usuarioNombre')) {
-        window.location.replace('index.html');
-    }
-});
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.replace('index.html');
-}
