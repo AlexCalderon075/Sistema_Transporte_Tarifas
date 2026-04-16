@@ -21,7 +21,9 @@ if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir);
 
 // CAMBIO 3: Ajuste de rutas estáticas (Render suele usar una estructura plana o específica)
 // Si tu carpeta de frontend está al mismo nivel que server.js, usa './frontend'
-app.use(express.static(path.join(__dirname, 'frontend'))); 
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
+});
 app.use('/uploads', express.static(uploadDir));
 
 // --- CONFIGURACIÓN DE ALMACENAMIENTO DE FOTOS ---
