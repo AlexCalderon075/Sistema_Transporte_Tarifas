@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Transporte - Panel Principal</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header class="header-blue">
+            <h2 id="bienvenida">Bienvenido...</h2> <button class="btn-perfil" onclick="location.href='perfil.html'">
+                <i class="fas fa-user-circle"></i> Perfil
+            </button>
+        </header>
+
+        <main class="grid-container">
+            
+            <div class="card" onclick="location.href='calculo.html'">
+                <div class="card-icon" style="color: #28a745;">
+                    <i class="fas fa-calculator fa-3x"></i>
+                </div>
+                <h3>Calcular Nueva Tarifa</h3>
+                <p>Genera un presupuesto basado en distancia y peso.</p>
+            </div>
+
+            <div class="card" onclick="location.href='historial.html'">
+                <div class="card-icon" style="color: #000d57;">
+                    <i class="fas fa-history fa-3x"></i>
+                </div>
+                <h3>Historial de Cálculos</h3>
+                <p>Revisa tus registros guardados.</p>
+            </div>
+
+            <div class="card" onclick="cerrarSesion()">
+                <div class="card-icon" style="color: #dc3545;">
+                    <i class="fas fa-sign-out-alt fa-3x"></i>
+                </div>
+                <h3>Cerrar Sesión</h3>
+                <p>Finaliza tu sesión de forma segura.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

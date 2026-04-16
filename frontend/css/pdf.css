@@ -1,0 +1,78 @@
+/* --- CONTENEDOR PRINCIPAL --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra todo el contenido */
+}
+
+/* --- HEADER (El recuadro morado) --- */
+.header-blue {
+    background: #7e00ff;
+    color: white;
+    width: 100%;
+    max-width: 900px;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between; /* Separa el título del botón */
+    align-items: center;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* --- TABLA DE DATOS --- */
+.tabla-scroll {
+    background: white;
+    width: 100%;
+    max-width: 900px;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    color: #4a5568;
+    text-align: left;
+    padding: 15px;
+    border-bottom: 2px solid #edf2f7;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+td {
+    padding: 20px 15px;
+    border-bottom: 1px solid #f7fafc;
+    color: #2d3748;
+}
+
+/* --- BOTÓN EXPORTAR --- */
+.btn-pdf {
+    background: #00c853; /* El verde brillante de tu imagen */
+    color: white;
+    border: none;
+    padding: 15px 35px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.3s;
+    box-shadow: 0 4px 14px rgba(0, 200, 83, 0.3);
+}
+
+.btn-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 200, 83, 0.4);
+}
+
+/* Estilos de la plantilla del PDF (Se mantienen igual) */
+#plantillaPDF { display: none; }

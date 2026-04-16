@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cotizador Logístico Avanzado</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="header-blue">
+            <h2><i class="fas fa-truck-loading"></i> Cotizador Logístico Avanzado</h2>
+            <button class="btn-volver" onclick="location.href='dashboard.html'">Volver</button>
+        </header>
+
+        <div class="card-calculo" style="background: white; padding: 25px; border-radius: 12px; box-shadow: var(--sombra);">
+            
+            <div class="grid-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                
+                <div class="seccion-form">
+                    <h3><i class="fas fa-cogs"></i> Configuración de Operación</h3>
+                    <div class="campo-agrupado">
+                        <label>Tipo de Operación:</label>
+                        <select id="cbOperacion"><option>Full</option><option>Sencillo</option></select>
+                    </div>
+                    <div class="campo-agrupado">
+                        <label>Tipo de Unidad:</label>
+                        <select id="cbUnidad"><option>Caja Seca</option><option>Refrigerado</option></select>
+                    </div>
+                    <div class="campo-agrupado">
+                        <label>Tipo de Caja:</label>
+                        <select id="cbCaja"><option>Propia</option><option>Ajena</option></select>
+                    </div>
+                    <div class="campo-agrupado">
+                        <label>Tipo de Viaje:</label>
+                        <select id="cbViaje"><option>IDA</option><option>REDONDO</option></select>
+                    </div>
+                </div>
+
+                <div class="seccion-form">
+                    <h3><i class="fas fa-route"></i> Datos de Ruta y Costos</h3>
+                    <div class="campo-agrupado">
+                        <label>Origen / Destino:</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="txtOrigen" placeholder="Origen">
+                            <input type="text" id="txtDestino" placeholder="Destino">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="campo-agrupado"><label>Kilómetros:</label><input type="number" id="txtKm" value="0"></div>
+                        <div class="campo-agrupado"><label>Casetas ($):</label><input type="number" id="txtCasetas" value="0"></div>
+                        <div class="campo-agrupado"><label>Días de Viaje:</label><input type="number" id="txtDiasViaje" value="1"></div>
+                        <div class="campo-agrupado"><label>Precio Diesel:</label><input type="number" id="txtDieselPrecio" value="24.50"></div>
+                        <div class="campo-agrupado"><label>Rendimiento:</label><input type="number" id="txtRendimiento" value="2.5"></div>
+                        <div class="campo-agrupado"><label>Costo Recolección:</label><input type="number" id="txtCostoRecoleccion" value="0"></div>
+                        <div class="campo-agrupado"><label>Utilidad (%):</label><input type="number" id="txtUtilidadPorcentaje" value="30"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-around; margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <div>
+                    <label><strong>Transfer:</strong></label>
+                    <input type="radio" name="transfer" id="rbSinTransfer" checked> Sin Transfer
+                    <input type="radio" name="transfer" id="rbConTransfer"> Con Transfer
+                </div>
+                <div>
+                    <label><strong>Moneda:</strong></label>
+                    <input type="radio" name="moneda" id="rbPesos" checked> Pesos (MXN)
+                    <input type="radio" name="moneda" id="rbDolares"> Dólares (USD)
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <h1 id="lblTarifaTotal" style="color: var(--azul-primario); font-size: 2.5rem;">TARIFA FINAL: $0.00</h1>
+                <div style="margin-top: 20px;">
+                    <button class="btn-login" onclick="realizarCalculo()">Calcular</button>
+                    <button class="btn-registrar" onclick="guardarDatos()">Guardar en Historial</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/calculo.js"></script>
+</body>
+</html>

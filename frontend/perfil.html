@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Sistema de Tarifas</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="perfil-header">
+            <div class="avatar-container">
+                <img id="imgPerfil" src="https://via.placeholder.com/120" alt="Foto" class="profile-img">
+            </div>
+            <h2>Editar Perfil</h2>
+        </div>
+
+        <form id="formPerfil" class="perfil-info">
+            <div class="campo-agrupado">
+                <label><i class="fas fa-camera"></i> Foto de Perfil:</label>
+                <input type="file" id="fotoArchivo" accept="image/*">
+            </div>
+
+            <div class="campo-agrupado">
+                <label>Nombre:</label>
+                <input type="text" id="perfNombre" required>
+            </div>
+
+            <div class="campo-agrupado">
+                <label>Correo (No editable):</label>
+                <input type="email" id="perfCorreo" disabled>
+            </div>
+
+            <div class="campo-agrupado">
+                <label>Teléfono:</label>
+                <input type="text" id="perfTelefono">
+            </div>
+
+            <div class="campo-agrupado">
+                <label>ID Tarjeta:</label>
+                <input type="text" id="perfTarjeta">
+            </div>
+
+            <div class="perfil-acciones">
+                <button type="submit" class="btn-registrar">Guardar Cambios</button>
+                <button type="button" class="btn-volver" onclick="location.href='dashboard.html'">Cancelar</button>
+            </div>
+        </form>
+    </div>
+    <script src="js/perfil.js"></script>
+</body>
+</html>

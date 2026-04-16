@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Historial OGOI - Reporte Oficial</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="css/pdf.css">
+</head>
+<body>
+
+    <div class="header-blue">
+        <h2><i class="fas fa-history"></i> Historial de Cotizaciones</h2>
+        <button onclick="location.href='dashboard.html'" class="btn-volver">Volver al Inicio</button>
+    </div>
+
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th><th>Fecha</th><th>Origen</th><th>Destino</th><th>Tarifa Final</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoHistorial"></tbody>
+        </table>
+    </div>
+
+    <button onclick="generarPDF()" class="btn-pdf">
+        <i class="fas fa-file-pdf"></i> EXPORTAR REPORTE COMPLETO
+    </button>
+
+    <div id="plantillaPDF">
+        <div class="pdf-header-title">HOJA DE COSTOS Y RENTABILIDAD LOGÍSTICA</div>
+        <div class="pdf-meta-info">
+            ID de Registro: <span id="pdf-id"></span> | Fecha de reporte: <span id="pdf-fecha"></span>
+        </div>
+
+        <div class="pdf-section-bar">I. ESPECIFICACIONES COMERCIALES</div>
+        <div style="padding-left: 10px; line-height: 1.6; font-size: 10pt;">
+            Ruta: <span id="pdf-ruta"></span><br>
+            Configuración: <span id="pdf-config"></span><br>
+            Modalidad: <span id="pdf-modalidad"></span> | Transfer: <span id="pdf-transfer"></span><br>
+            Operador Certificado (ID): <span id="pdf-operador"></span>
+        </div>
+
+        <div class="pdf-section-bar">II. DESGLOSE DE COSTOS OPERATIVOS (INTERNOS)</div>
+        <table class="pdf-table">
+            <tr><td class="bg-light">Sueldo Operador</td><td id="pdf-sueldo" class="text-right"></td></tr>
+            <tr><td>Consumo de Diesel</td><td id="pdf-diesel" class="text-right"></td></tr>
+            <tr><td class="bg-light">Carga Laboral (IMSS/Infonavit)</td><td id="pdf-carga" class="text-right"></td></tr>
+            <tr><td>Mantenimiento Preventivo</td><td id="pdf-manto" class="text-right"></td></tr>
+            <tr><td class="bg-light">Neumáticos (Llantas)</td><td id="pdf-llantas" class="text-right"></td></tr>
+            <tr><td>Seguro de Tractocamión</td><td id="pdf-seg-t" class="text-right"></td></tr>
+            <tr><td class="bg-light">Seguro de Remolque/Caja</td><td id="pdf-seg-c" class="text-right"></td></tr>
+            <tr><td>Depreciación de Activo</td><td id="pdf-depre" class="text-right"></td></tr>
+            <tr><td class="bg-light">Rastreo Satelital (GPS)</td><td id="pdf-gps" class="text-right"></td></tr>
+            <tr><td>Gastos Diversos de Tránsito</td><td id="pdf-div" class="text-right"></td></tr>
+            <tr><td class="bg-light">Gastos Administrativos</td><td id="pdf-admin" class="text-right"></td></tr>
+            <tr><td>Uso de Infraestructura</td><td id="pdf-infra" class="text-right"></td></tr>
+            <tr><td class="bg-light">Dirección OGOI</td><td id="pdf-ogoi" class="text-right"></td></tr>
+        </table>
+
+        <div class="pdf-section-bar">III. RESUMEN DE RENTABILIDAD</div>
+        <table class="pdf-table">
+            <tr><td class="bg-light" style="width: 70%;">COSTO OPERATIVO TOTAL</td><td id="pdf-costo-t" class="text-right"></td></tr>
+            <tr><td>UTILIDAD NETA (<span id="pdf-util-porc"></span>%)</td><td id="pdf-util-neta" class="text-right"></td></tr>
+            <tr class="pdf-final-row">
+                <td>TARIFA FINAL AL CLIENTE</td>
+                <td id="pdf-total" class="text-right"></td>
+            </tr>
+        </table>
+    </div>
+
+    <script src="js/historial.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Tarifas - Registro</title>
+    <link rel="stylesheet" href="css/estilos.css"> </head>
+<body>
+    <div class="container">
+        <h2>Crear Cuenta Nueva</h2>
+        <form id="formRegistro">
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombre" required>
+
+            <label>Teléfono:</label>
+            <input type="text" id="telefono">
+
+            <label>Correo electrónico:</label>
+            <input type="email" id="correo" required>
+
+            <label>Número de Tarjeta (ID):</label>
+            <input type="text" id="tarjeta" required>
+
+            <label>Contraseña:</label>
+            <input type="password" id="pass" required>
+
+            <label>Confirmar Contraseña:</label>
+            <input type="password" id="confirmPass" required>
+
+            <button type="submit" class="btn-registrar">Registrar Usuario</button>
+            <button type="button" class="btn-volver" onclick="location.href='index.html'">Volver</button>
+        </form>
+    </div>
+
+    <script src="js/registro.js"></script>
+</body>
+</html>

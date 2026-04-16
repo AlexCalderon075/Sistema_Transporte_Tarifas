@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Tarifas - Login</title>
+    <link rel="stylesheet" href="css/estilos.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #5d3dfd; margin: 0; }
+        p.sub { color: #888; margin-bottom: 20px; font-size: 14px; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
+        input[type="email"], input[type="password"], input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        
+        /* Estilo para el "Mostrar Contraseña" */
+        .show-pass { text-align: left; margin-bottom: 15px; display: flex; align-items: center; font-size: 13px; color: #666; cursor: pointer; }
+        .show-pass input { width: auto; margin-right: 8px; cursor: pointer; }
+
+        .btn-entrar { width: 100%; padding: 12px; background: #5d3dfd; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-entrar:hover { background: #4a2fd4; }
+        .login-footer { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-registro { background: none; border: 1px solid #5d3dfd; color: #5d3dfd; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <h2>Sistema de Tarifas</h2>
+        <p class="sub">Inicio de sesión</p>
+
+        <form id="formLogin" autocomplete="off">
+            <div class="input-group">
+                <label for="loginCorreo">Correo Electrónico:</label>
+                <input type="email" id="loginCorreo" placeholder="ejemplo@correo.com" required>
+            </div>
+
+            <div class="input-group">
+                <label for="loginPass">Contraseña:</label>
+                <input type="password" id="loginPass" placeholder="********" required>
+            </div>
+
+            <label class="show-pass">
+                <input type="checkbox" id="showPass"> Mostrar contraseña
+            </label>
+
+            <button type="submit" class="btn-entrar">Entrar</button>
+        </form>
+
+        <div class="login-footer">
+            <p style="color: #666; font-size: 14px;">¿Aún no tienes cuenta?</p>
+            <button type="button" class="btn-registro" onclick="location.href='registro.html'">
+                Registrarse aquí
+            </button>
+        </div>
+    </div>
+
+    <script src="js/login.js"></script>
+</body>
+</html>
