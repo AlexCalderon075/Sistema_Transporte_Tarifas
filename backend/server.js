@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 10000; // Render usa el puerto 10000 por defect
 
 // --- 1. CONEXIÓN A SUPABASE ---
 // Recuerda: Solo letras y números en la contraseña para evitar errores de símbolos
-const connectionString = "TU_URI_DE_SUPABASE_AQUÍ";
+const connectionString = "postgresql://postgres:Aarx7fgXDv6assee@db.pwqqatkoikeofloahbtz.supabase.co:5432/postgres";
 
 const pool = new Pool({
     connectionString: connectionString,
