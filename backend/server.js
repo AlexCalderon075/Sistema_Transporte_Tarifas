@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 // --- CONFIGURACIÓN DE CONEXIÓN A SUPABASE ---
 // REEMPLAZA ESTA URI con la que copiaste de Supabase (Connection String -> URI)
-const connectionString = "postgresql://postgres:[Trans_Tarifas]@db.pwqqatkoikeofloahbtz.supabase.co:5432/postgres";
+const connectionString = "postgresql://postgres:Trans_Tarifas@db.pwqqatkoikeofloahbtz.supabase.co:5432/postgres";
 
 const pool = new Pool({
     connectionString: connectionString,
