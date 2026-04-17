@@ -36,7 +36,31 @@ document.getElementById('formLogin').addEventListener('submit', async (e) => {
         alert("Error de conexión con el servidor.");
     }
 });
+async function recuperarClave() {
+    const correo = prompt("Introduce tu correo registrado:");
+    if (!correo) return;
 
+    const tarjeta = prompt("Introduce tu ID de Tarjeta para validar tu identidad:");
+    if (!tarjeta) return;
+
+    try {
+        const response = await fetch('https://sistema-transporte-tarifas-1.onrender.com/api/recuperar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, tarjeta_id: tarjeta })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert("Validación exitosa. Tu contraseña es: " + data.password);
+        } else {
+            alert("x " + data.error);
+        }
+    } catch (error) {
+        alert("Hubo un error al conectar con el servidor.");
+    }
+}
 // Mostrar/Ocultar contraseña
 const checkShow = document.getElementById('showPass');
 if (checkShow) {

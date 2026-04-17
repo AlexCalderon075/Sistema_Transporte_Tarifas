@@ -152,7 +152,25 @@ app.put('/api/usuario/actualizar/:nombreOriginal', upload.single('fotoArchivo'),
         res.status(500).json({ error: "Error al actualizar perfil" });
     }
 });
+// RUTA: Recuperar Contraseña (Básico)
+app.post('/api/recuperar', async (req, res) => {
+    const { correo, tarjeta_id } = req.body;
+    try {
+        // Validamos por correo Y por su ID de tarjeta para que no cualquiera robe claves
+        const result = await pool.query(
+            'SELECT password FROM usuarios WHERE correo = $1 AND tarjeta_id = $2', 
+            [correo, tarjeta_id]
+        );
 
+        if (result.rows.length > 0) {
+            res.json({ password: result.rows[0].password });
+        } else {
+            res.status(404).json({ error: "Los datos no coinciden con nuestros registros." });
+        }
+    } catch (err) {
+        res.status(500).json({ error: "Error en el servidor" });
+    }
+});
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`🚀 Servidor PostgreSQL activo en puerto ${PORT}`);
