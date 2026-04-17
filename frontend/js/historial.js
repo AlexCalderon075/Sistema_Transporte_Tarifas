@@ -14,10 +14,24 @@ function llenar(id, valor) {
 
 async function cargarHistorial() {
     const cuerpo = document.getElementById('cuerpoHistorial');
+    
+    // 1. Obtener el nombre del usuario logueado desde el almacenamiento local
+    const nombreUsuario = localStorage.getItem('usuarioNombre'); // O 'usuario_nombre', como lo hayas guardado
+
+    if (!nombreUsuario) {
+        console.error("No se encontró el nombre del usuario en el sistema");
+        return;
+    }
+
     try {
-        const res = await fetch(`${API_URL}/api/historial`);
+        // 2. Modificamos el fetch para enviar el nombre como "query parameter" (?usuario=...)
+        const res = await fetch(`${API_URL}/api/historial?usuario=${encodeURIComponent(nombreUsuario)}`);
+        
         const datos = await res.json();
+        
         cuerpo.innerHTML = '';
+        
+        // El resto del código se queda igual porque la estructura de los datos no cambia
         datos.forEach(c => {
             const fila = document.createElement('tr');
             fila.innerHTML = `<td>${c.id}</td><td>${c.fecha}</td><td>${c.origen}</td><td>${c.destino}</td><td><b>${fM(c.tarifa_final)}</b></td>`;
@@ -28,7 +42,9 @@ async function cargarHistorial() {
             };
             cuerpo.appendChild(fila);
         });
-    } catch (e) { console.error("Error al cargar:", e); }
+    } catch (e) { 
+        console.error("Error al cargar:", e); 
+    }
 }
 
 function generarPDF() {

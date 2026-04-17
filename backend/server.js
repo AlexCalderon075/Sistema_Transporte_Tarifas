@@ -116,13 +116,21 @@ app.post('/api/historial', async (req, res) => {
     }
 });
 
-// RUTA: Obtener todos los registros del historial
-app.get('/api/historial', async (req, res) => {
+
+// RUTA: Obtener el historial filtrado por usuario
+app.get('/api/historial/:nombre', async (req, res) => {
+    const nombreUsuario = req.params.nombre;
+
     try {
-        const result = await pool.query('SELECT * FROM historial_calculos ORDER BY id DESC');
+        // Añadimos el "WHERE usuario_nombre = $1" para que no vea lo de otros
+        const result = await pool.query(
+            'SELECT * FROM historial_calculos WHERE usuario_nombre = $1 ORDER BY id DESC', 
+            [nombreUsuario]
+        );
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("Error al obtener historial:", err.message);
+        res.status(500).json({ error: "No se pudo obtener tu historial" });
     }
 });
 

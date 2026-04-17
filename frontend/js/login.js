@@ -58,7 +58,7 @@ async function recuperarClave() {
             alert("x " + data.error);
         }
     } catch (error) {
-        alert("Hubo un error al conectar con el servidor.");
+        alerct("Hubo un error al conectar con el servidor.");
     }
 }
 // Mostrar/Ocultar contraseña
