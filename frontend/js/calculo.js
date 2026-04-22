@@ -4,7 +4,7 @@ let catalogoGlobal = [];
 // 1. CARGAR DATOS AL INICIAR
 document.addEventListener('DOMContentLoaded', async () => {
     await cargarPreciosCatalogo();
-    console.log("🚀 Calculadora lista con datos de Supabase");
+    console.log("🚀 Calculadora cargada con las fórmulas oficiales");
 });
 
 async function cargarPreciosCatalogo() {
@@ -13,74 +13,63 @@ async function cargarPreciosCatalogo() {
         catalogoGlobal = await res.json();
     } catch (err) {
         console.error("Error obteniendo catálogo:", err);
-        alert("No se pudieron cargar los precios del catálogo.");
     }
 }
 
-// 2. FUNCIÓN AUXILIAR PARA OBTENER VALORES
+// FUNCIÓN AUXILIAR PARA OBTENER VALORES DEL CATÁLOGO
 function getVal(conceptoNombre) {
     const item = catalogoGlobal.find(i => i.concepto === conceptoNombre);
     return item ? parseFloat(item.valor) : 0;
 }
 
-// 3. LÓGICA PRINCIPAL DEL CÁLCULO
+// 2. LÓGICA DE CÁLCULO SEGÚN TU GUÍA
 async function calcularTarifa() {
-    // Captura de datos del formulario (lo que el usuario escribe)
+    // Entradas del usuario en el formulario
     const km = parseFloat(document.getElementById('km').value) || 0;
     const diasViaje = parseFloat(document.getElementById('dias').value) || 1;
-    const tipoUnidad = document.getElementById('unidad').value; // 'sencillo' o 'full'
-    const tipoCaja = document.getElementById('caja').value; // 'seca', 'refrigerada', 'plataforma'
+    const casetas = parseFloat(document.getElementById('casetas').value) || 0;
+    const transfer = parseFloat(document.getElementById('transfer').value) || 0;
+    const litrosDieselThermo = parseFloat(document.getElementById('diesel_thermo').value) || 0;
 
-    if (km <= 0) {
-        alert("Por favor ingresa los kilómetros");
-        return;
-    }
+    if (km <= 0) return alert("Ingresa los kilómetros para calcular");
 
-    // --- A. COSTOS VARIABLES (Se multiplican por KM) ---
-    const rendimiento = (tipoUnidad === 'full') ? 1.8 : 2.5; // Esto también podrías subirlo al catálogo
+    // --- CÁLCULOS INDIVIDUALES (Según tu imagen de fórmulas) ---
     const precioDiesel = getVal('precio_diesel');
-    const costoDiesel = (km / rendimiento) * precioDiesel;
+    const rendimientoTracto = 2.5; // Valor estándar o puedes agregarlo al catálogo
 
-    const mantenimiento = getVal('mantenimiento') * km;
-    const llantas = getVal('llantas') * km;
-    const depreciacion = getVal('depreciacion') * km;
-    const diversos = getVal('diversos_trans') * km;
-    const sueldoOperador = getVal('sueldo_operador_base') * km;
+    const admin = km * getVal('administracion');
+    const cargaLaboral = diasViaje * getVal('carga_laboral');
+    const depreciacion = diasViaje * getVal('depreciacion');
+    const diesel = (km / rendimientoTracto) * precioDiesel;
+    const dieselThermo = litrosDieselThermo * precioDiesel;
+    const direccionOGOI = km * getVal('direccion_ogoi');
+    const diversosTrans = km * getVal('diversos_trans');
+    const infraestructura = diasViaje * getVal('infraestructura');
+    const llantas = km * getVal('llantas');
+    const mantenimiento = km * getVal('mantenimiento');
+    const rastreoSat = diasViaje * getVal('rastreo_sat');
+    const seguroCaja = diasViaje * getVal('seguro_caja');
+    const seguroTracto = diasViaje * getVal('seguro_tracto');
 
-    // --- B. COSTOS FIJOS (Se multiplican por DÍAS) ---
-    const seguroTracto = getVal('seguro_tracto') * diasViaje;
-    const seguroCaja = getVal('seguro_caja') * diasViaje;
-    const rastreo = getVal('rastreo_sat') * diasViaje;
-    const admin = getVal('administracion') * diasViaje;
-    const infra = getVal('infraestructura') * diasViaje;
-    const cargaLaboral = getVal('carga_laboral') * diasViaje;
-    const ogoi = getVal('direccion_ogoi') * diasViaje;
-
-    // --- C. EXTRAS POR TIPO DE CAJA ---
-    let extraCaja = 0;
-    if (tipoCaja === 'refrigerado') extraCaja = getVal('extra_refrigerado');
-    if (tipoCaja === 'plataforma') extraCaja = getVal('extra_plataforma');
-
-    // --- D. TOTALIZADO ---
-    const subtotalCosto = costoDiesel + mantenimiento + llantas + depreciacion + diversos + 
-                         sueldoOperador + seguroTracto + seguroCaja + rastreo + 
-                         admin + infra + cargaLaboral + ogoi + extraCaja;
-
-    // Aplicamos factor de configuración (Sencillo = 1, Full = 1.4 según tu guía)
-    const factorConfig = (tipoUnidad === 'full') ? getVal('factor_full') : getVal('factor_sencillo');
-    const costoFinal = subtotalCosto * factorConfig;
-
-    // --- E. MOSTRAR RESULTADOS ---
-    document.getElementById('res_costo').innerText = `$${costoFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    // --- PAGO OPERADOR (Suma de conceptos * Factor de Pago Operador) ---
+    // Según tu guía: (Transfer + Casetas + Diésel + Diésel Thermo + Carga Laboral + Mantenimiento + Llantas + Seguros + Depreciación + Rastreo + Diversos + Admin + Infra + OGOI) * Factor
+    const sumaParaOperador = transfer + casetas + diesel + dieselThermo + cargaLaboral + 
+                             mantenimiento + llantas + seguroTracto + seguroCaja + 
+                             depreciacion + rastreoSat + diversosTrans + admin + 
+                             infraestructura + direccionOGOI;
     
-    // Si tienes un campo de utilidad (ejemplo 15%)
-    const porcentajeUtilidad = 1.15; 
-    const tarifaSugerida = costoFinal * porcentajeUtilidad;
-    document.getElementById('res_tarifa').innerText = `$${tarifaSugerida.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-}
+    const pagoOperador = sumaParaOperador * getVal('sueldo_operador_base');
 
-// 4. GUARDAR EN HISTORIAL (Opcional)
-async function guardarCalculo() {
-    // Aquí iría tu fetch POST a /api/historial enviando los resultados
-    console.log("Guardando en historial...");
+    // --- COSTO TOTAL ---
+    // Según tu guía: Pago Operador + Suma de todos los conceptos anteriores
+    const costoTotal = pagoOperador + sumaParaOperador;
+
+    // --- TARIFA (Costo * Utilidad) ---
+    const utilidad = 1.15; // 15% de utilidad, puedes ajustarlo o traerlo del catálogo
+    const tarifaFinal = costoTotal * utilidad;
+
+    // --- MOSTRAR RESULTADOS ---
+    document.getElementById('res_pago_operador').innerText = `$${pagoOperador.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    document.getElementById('res_costo_total').innerText = `$${costoTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    document.getElementById('res_tarifa').innerText = `$${tarifaFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 }
