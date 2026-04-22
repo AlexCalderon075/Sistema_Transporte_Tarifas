@@ -24,65 +24,50 @@ function getVal(conceptoNombre) {
 
 // 2. LÓGICA DE CÁLCULO SEGÚN TU GUÍA
 async function calcularTarifa() {
-    // Entradas del usuario en el formulario
+    // 1. Capturamos lo que el usuario escribió (Manual)
+    const precioDiesel = parseFloat(document.getElementById('precio_diesel_manual').value) || 0;
     const km = parseFloat(document.getElementById('km').value) || 0;
     const diasViaje = parseFloat(document.getElementById('dias').value) || 1;
     const casetas = parseFloat(document.getElementById('casetas').value) || 0;
-    const transfer = parseFloat(document.getElementById('transfer').value) || 0;
-    const litrosDieselThermo = parseFloat(document.getElementById('diesel_thermo').value) || 0;
+    const rendimiento = parseFloat(document.getElementById('rendimiento').value) || 2.5;
 
-    if (km <= 0) return alert("Ingresa los kilómetros para calcular");
+    // 2. Traemos del CATÁLOGO el valor fijo que guardaste en la BD
+    const litrosDieselThermo = getVal('litros_diesel_thermo'); 
 
-    // --- CÁLCULOS INDIVIDUALES (Según tu imagen de fórmulas) ---
-    const precioDiesel = getVal('precio_diesel');
-    const rendimientoTracto = 2.5; // Valor estándar o puedes agregarlo al catálogo
+    // --- CÁLCULOS DE DIÉSEL ---
+    const costoDieselTracto = (km / rendimiento) * precioDiesel;
+    const costoDieselThermo = litrosDieselThermo * precioDiesel;
 
+    // --- OTROS CONCEPTOS DEL CATÁLOGO (Factores Específicos) ---
     const admin = km * getVal('administracion');
     const cargaLaboral = diasViaje * getVal('carga_laboral');
     const depreciacion = diasViaje * getVal('depreciacion');
-    const diesel = (km / rendimientoTracto) * precioDiesel;
-    const dieselThermo = litrosDieselThermo * precioDiesel;
-    const direccionOGOI = km * getVal('direccion_ogoi');
-    const diversosTrans = km * getVal('diversos_trans');
-    const infraestructura = diasViaje * getVal('infraestructura');
+    const infra = diasViaje * getVal('infraestructura');
     const llantas = km * getVal('llantas');
     const mantenimiento = km * getVal('mantenimiento');
-    const rastreoSat = diasViaje * getVal('rastreo_sat');
-    const seguroCaja = diasViaje * getVal('seguro_caja');
-    const seguroTracto = diasViaje * getVal('seguro_tracto');
+    const rastreo = diasViaje * getVal('rastreo_sat');
+    const segCaja = diasViaje * getVal('seguro_caja');
+    const segTracto = diasViaje * getVal('seguro_tracto');
+    const ogoi = km * getVal('direccion_ogoi');
+    const diversos = km * getVal('diversos_trans');
 
-    // --- PAGO OPERADOR (Suma de conceptos * Factor de Pago Operador) ---
-    // Según tu guía: (Transfer + Casetas + Diésel + Diésel Thermo + Carga Laboral + Mantenimiento + Llantas + Seguros + Depreciación + Rastreo + Diversos + Admin + Infra + OGOI) * Factor
-    const sumaParaOperador = transfer + casetas + diesel + dieselThermo + cargaLaboral + 
-                             mantenimiento + llantas + seguroTracto + seguroCaja + 
-                             depreciacion + rastreoSat + diversosTrans + admin + 
-                             infraestructura + direccionOGOI;
-    
-    const pagoOperador = sumaParaOperador * getVal('sueldo_operador_base');
+    // Transfer (Lógica de los botones radio)
+    const tieneTransfer = document.querySelector('input[name="transfer"]:checked').value === 'si';
+    const montoTransfer = tieneTransfer ? getVal('transfer_costo') : 0; 
 
-    // --- COSTO TOTAL ---
-    // Según tu guía: Pago Operador + Suma de todos los conceptos anteriores
-    const costoTotal = pagoOperador + sumaParaOperador;
+    // --- PAGO OPERADOR (Suma según tu tabla) ---
+    const sumaConceptos = costoDieselTracto + costoDieselThermo + casetas + montoTransfer + 
+                         cargaLaboral + mantenimiento + llantas + segTracto + 
+                         segCaja + depreciacion + rastreo + diversos + 
+                         admin + infra + ogoi;
 
-    // --- TARIFA (Costo * Utilidad) ---
-    const utilidad = 1.15; // 15% de utilidad, puedes ajustarlo o traerlo del catálogo
-    const tarifaFinal = costoTotal * utilidad;
+    const pagoOperador = sumaConceptos * getVal('sueldo_operador_base');
 
-    // --- MOSTRAR RESULTADOS ---
-    document.getElementById('res_pago_operador').innerText = `$${pagoOperador.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-    document.getElementById('res_costo_total').innerText = `$${costoTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    // --- COSTO TOTAL Y TARIFA ---
+    const costoTotal = pagoOperador + sumaConceptos;
+    const utilidadPorc = parseFloat(document.getElementById('utilidad_input').value) / 100;
+    const tarifaFinal = costoTotal * (1 + utilidadPorc);
+
+    // --- MOSTRAR RESULTADO ---
     document.getElementById('res_tarifa').innerText = `$${tarifaFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-}
-
-async function guardarEnHistorial(datosCalculados) {
-    try {
-        await fetch(`${API_URL}/api/historial`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosCalculados)
-        });
-        console.log(" Cotización guardada en el historial");
-    } catch (err) {
-        console.error("Error al guardar historial");
-    }
 }
