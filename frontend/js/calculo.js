@@ -73,3 +73,16 @@ async function calcularTarifa() {
     document.getElementById('res_costo_total').innerText = `$${costoTotal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
     document.getElementById('res_tarifa').innerText = `$${tarifaFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
 }
+
+async function guardarEnHistorial(datosCalculados) {
+    try {
+        await fetch(`${API_URL}/api/historial`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosCalculados)
+        });
+        console.log(" Cotización guardada en el historial");
+    } catch (err) {
+        console.error("Error al guardar historial");
+    }
+}
