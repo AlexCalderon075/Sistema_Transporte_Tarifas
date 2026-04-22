@@ -75,14 +75,20 @@ app.get('/api/catalogo', async (req, res) => {
 
 app.post('/api/catalogo/update', async (req, res) => {
     const { id, rendimiento, precio_diesel, infraestructura, administracion, utilidad } = req.body;
+    
+    // AGREGA ESTO PARA VERLO EN RENDER
+    console.log(`📝 Actualizando catálogo ID: ${id} - Nuevo Diesel: $${precio_diesel}`);
+
     const sql = `UPDATE catalogo_tarifas SET 
                  rendimiento = $1, precio_diesel = $2, infraestructura = $3, 
                  administracion = $4, utilidad = $5 
                  WHERE id = $6`;
     try {
         await pool.query(sql, [rendimiento, precio_diesel, infraestructura, administracion, utilidad, id]);
+        console.log("✅ Cambio guardado en Supabase"); // Otro log útil
         res.json({ mensaje: "Catálogo actualizado con éxito" });
     } catch (err) {
+        console.error("❌ Error en update:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
