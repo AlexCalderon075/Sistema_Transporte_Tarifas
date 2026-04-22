@@ -136,5 +136,5 @@ app.get('/*', (req, res) => {
 
 // Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor Supabase activo en puerto ${PORT}`);
+    console.log(`🚀 SERVIDOR V3 - FORMULAS ACTIVAS - PUERTO ${PORT}`);
 });
