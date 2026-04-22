@@ -36,32 +36,19 @@ const upload = multer({ storage: storage });
 // Esta función crea la tabla de catálogo si no existe en Supabase
 const initDB = async () => {
     try {
+        // Creamos la tabla con la nueva estructura
         await pool.query(`CREATE TABLE IF NOT EXISTS catalogo_tarifas (
             id SERIAL PRIMARY KEY,
-            unidad TEXT UNIQUE,
-            rendimiento REAL,
-            precio_diesel REAL,
-            infraestructura REAL,
-            sueldo_operador REAL,
-            administracion REAL,
-            utilidad REAL
+            concepto TEXT UNIQUE NOT NULL,
+            valor REAL DEFAULT 0,
+            categoria TEXT
         )`);
-
-        const res = await pool.query("SELECT COUNT(*) FROM catalogo_tarifas");
-        if (parseInt(res.rows[0].count) === 0) {
-            const sqlSeed = `INSERT INTO catalogo_tarifas 
-                (unidad, rendimiento, precio_diesel, infraestructura, sueldo_operador, administracion, utilidad) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7)`;
-            await pool.query(sqlSeed, ['Sencillo T3-S2', 2.5, 24.10, 1500, 2000, 10, 15]);
-            await pool.query(sqlSeed, ['Full T3-S2-S2', 1.8, 24.10, 2800, 3000, 10, 15]);
-            console.log("🌱 Catálogo inicial creado en Supabase");
-        }
+        console.log("Estructura de catálogo vertical verificada.");
     } catch (err) {
-        console.error("❌ Error inicializando catálogo:", err.message);
+        console.error("Error inicializando catálogo:", err.message);
     }
 };
 initDB();
-
 // --- 4. RUTAS DEL CATÁLOGO (Corregidas para Supabase) ---
 
 app.get('/api/catalogo', async (req, res) => {
@@ -72,27 +59,21 @@ app.get('/api/catalogo', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 app.post('/api/catalogo/update', async (req, res) => {
-    const { id, rendimiento, precio_diesel, infraestructura, administracion, utilidad } = req.body;
+    const { id, valor, concepto } = req.body;
     
-    // AGREGA ESTO PARA VERLO EN RENDER
-    console.log(`📝 Actualizando catálogo ID: ${id} - Nuevo Diesel: $${precio_diesel}`);
+    // Log para que veas el cambio en Render
+    console.log(`📢 Actualizando concepto: ${concepto} (ID: ${id}) -> Nuevo valor: ${valor}`);
 
-    const sql = `UPDATE catalogo_tarifas SET 
-                 rendimiento = $1, precio_diesel = $2, infraestructura = $3, 
-                 administracion = $4, utilidad = $5 
-                 WHERE id = $6`;
+    const sql = `UPDATE catalogo_tarifas SET valor = $1 WHERE id = $2`;
     try {
-        await pool.query(sql, [rendimiento, precio_diesel, infraestructura, administracion, utilidad, id]);
-        console.log("✅ Cambio guardado en Supabase"); // Otro log útil
-        res.json({ mensaje: "Catálogo actualizado con éxito" });
+        await pool.query(sql, [valor, id]);
+        res.json({ mensaje: "Concepto actualizado con éxito" });
     } catch (err) {
         console.error("❌ Error en update:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
-
 // --- 5. OTRAS RUTAS (Usuarios e Historial - Mantener igual pero con Pool) ---
 
 app.post('/api/registro', async (req, res) => {

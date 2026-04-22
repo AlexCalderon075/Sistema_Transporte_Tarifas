@@ -10,18 +10,17 @@ async function cargarCatalogo() {
         cuerpo.innerHTML = '';
 
         datos.forEach(item => {
+            // Formateamos el texto del concepto para que no se vea con guiones bajos
+            const nombreLimpio = item.concepto.replace(/_/g, ' ').toUpperCase();
+            
             cuerpo.innerHTML += `
                 <tr>
-                    <td><strong>${item.unidad}</strong></td>
-                    <td>${item.rendimiento} km/L</td>
-                    <td>$${item.precio_diesel}</td>
-                    <td>$${item.infraestructura}</td>
-                    <td>$${item.sueldo_operador}</td>
-                    <td>${item.administracion}%</td>
-                    <td>${item.utilidad}%</td>
+                    <td><strong>${nombreLimpio}</strong></td>
+                    <td>${item.categoria || 'N/A'}</td>
+                    <td class="text-right"><strong>$${item.valor.toLocaleString()}</strong></td>
                     <td>
                         <button class="btn-edit" onclick="abrirModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-                            <i class="fas fa-edit"></i>
+                            <i class="fas fa-edit"></i> Editar
                         </button>
                     </td>
                 </tr>
@@ -33,13 +32,13 @@ async function cargarCatalogo() {
 }
 
 function abrirModal(item) {
-    document.getElementById('nombreUnidad').innerText = item.unidad;
+    // Ajustamos los campos del modal a la nueva estructura
+    document.getElementById('nombreUnidad').innerText = item.concepto.replace(/_/g, ' ').toUpperCase();
     document.getElementById('editId').value = item.id;
-    document.getElementById('editRendimiento').value = item.rendimiento;
-    document.getElementById('editDiesel').value = item.precio_diesel;
-    document.getElementById('editInfra').value = item.infraestructura;
-    document.getElementById('editAdmin').value = item.administracion;
-    document.getElementById('editUtilidad').value = item.utilidad;
+    document.getElementById('editValor').value = item.valor; // Ahora solo editamos el valor
+    
+    // Guardamos el nombre del concepto en un campo oculto para el log del servidor
+    document.getElementById('editConcepto').value = item.concepto;
     
     document.getElementById('modalEditar').style.display = 'block';
 }
@@ -54,11 +53,8 @@ document.getElementById('formEditarTarifa').addEventListener('submit', async (e)
 
     const datosActualizados = {
         id: document.getElementById('editId').value,
-        rendimiento: document.getElementById('editRendimiento').value,
-        precio_diesel: document.getElementById('editDiesel').value,
-        infraestructura: document.getElementById('editInfra').value,
-        administracion: document.getElementById('editAdmin').value,
-        utilidad: document.getElementById('editUtilidad').value
+        valor: document.getElementById('editValor').value,
+        concepto: document.getElementById('editConcepto').value
     };
 
     try {
@@ -69,9 +65,9 @@ document.getElementById('formEditarTarifa').addEventListener('submit', async (e)
         });
 
         if (res.ok) {
-            alert("Catálogo actualizado correctamente");
+            alert("Concepto actualizado con éxito");
             cerrarModal();
-            cargarCatalogo(); // Recargar tabla
+            cargarCatalogo(); 
         }
     } catch (err) {
         alert("Error al actualizar el catálogo");
