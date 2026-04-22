@@ -115,7 +115,46 @@ app.post('/api/historial', async (req, res) => {
         res.status(500).json({ error: "No se pudo guardar la cotización" });
     }
 });
+// Ruta catalogo
+db.run(`CREATE TABLE IF NOT EXISTS catalogo_tarifas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    unidad TEXT UNIQUE,           -- Ejemplo: 'T3-S2', 'T3-S3'
+    rendimiento_sencillo REAL,    -- KM por litro
+    rendimiento_full REAL,        -- KM por litro (menor que el sencillo)
+    precio_diesel REAL,
+    sueldo_operador REAL,         -- Puede ser monto fijo o por km
+    mantenimiento REAL,           -- Porcentaje o costo por viaje
+    infraestructura REAL,        -- Casetas, GPS, etc.
+    administracion REAL,          -- Gastos de oficina
+    utilidad REAL                -- Porcentaje deseado
+)`);
 
+// Después de crear la tabla catalogo_tarifas
+db.get("SELECT COUNT(*) as count FROM catalogo_tarifas", (err, row) => {
+    if (row && row.count === 0) {
+        const sql = `INSERT INTO catalogo_tarifas 
+            (unidad, rendimiento, precio_diesel, infraestructura, sueldo_operador, administracion, utilidad) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)`;
+        
+        // Insertamos dos configuraciones base para que tengas algo que editar
+        db.run(sql, ['T3-S2 (Sencillo)', 2.5, 24.10, 1500, 2000, 10, 15]);
+        db.run(sql, ['T3-S2-S2 (Full)', 1.8, 24.10, 2800, 3000, 10, 15]);
+        console.log(" Catálogo inicial creado con éxito");
+    }
+});
+
+app.post('/api/catalogo/update', (req, res) => {
+    const { id, rendimiento, precio_diesel, infraestructura, administracion, utilidad } = req.body;
+    const sql = `UPDATE catalogo_tarifas SET 
+                 rendimiento = ?, precio_diesel = ?, infraestructura = ?, 
+                 administracion = ?, utilidad = ? 
+                 WHERE id = ?`;
+    
+    db.run(sql, [rendimiento, precio_diesel, infraestructura, administracion, utilidad, id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ mensaje: "Actualizado con éxito" });
+    });
+})
 
 // RUTA: Obtener el historial filtrado por usuario
 app.get('/api/historial', async (req, res) => {
@@ -155,7 +194,7 @@ app.put('/api/usuario/actualizar/:nombreOriginal', upload.single('fotoArchivo'),
         await pool.query(sql, [nombre, telefono, tarjeta_id, fotoRuta, nombreOriginal]);
         res.json({ mensaje: "Perfil actualizado", foto: fotoRuta });
     } catch (err) {
-        console.error("❌ ERROR AL ACTUALIZAR PERFIL:", err.message);
+        console.error("ERROR AL ACTUALIZAR PERFIL:", err.message);
         res.status(500).json({ error: "Error al actualizar perfil" });
     }
 });
