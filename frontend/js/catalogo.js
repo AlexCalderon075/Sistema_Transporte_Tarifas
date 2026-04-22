@@ -32,14 +32,19 @@ async function cargarCatalogo() {
 }
 
 function abrirModal(item) {
-    // Ajustamos los campos del modal a la nueva estructura
-    document.getElementById('nombreUnidad').innerText = item.concepto.replace(/_/g, ' ').toUpperCase();
-    document.getElementById('editId').value = item.id;
-    document.getElementById('editValor').value = item.valor; // Ahora solo editamos el valor
+    // 1. Corregimos el título
+    document.getElementById('nombreConcepto').innerText = item.concepto.replace(/_/g, ' ').toUpperCase();
     
-    // Guardamos el nombre del concepto en un campo oculto para el log del servidor
+    // 2. Cargamos el ID (invisible para el usuario)
+    document.getElementById('editId').value = item.id;
+    
+    // 3. Cargamos el Valor actual
+    document.getElementById('editValor').value = item.valor;
+    
+    // 4. Cargamos el nombre técnico (invisible)
     document.getElementById('editConcepto').value = item.concepto;
     
+    // 5. Mostramos el modal
     document.getElementById('modalEditar').style.display = 'block';
 }
 
