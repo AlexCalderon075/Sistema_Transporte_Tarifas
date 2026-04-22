@@ -2,97 +2,136 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calculadora de Tarifas Oficial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador Logístico Avanzado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primario: #4e44ff; --oscuro: #2c3e50; --gris: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: #eef2f3; padding: 20px; }
-        .calc-container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .grid-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-        .form-group { display: flex; flex-direction: column; }
-        label { font-weight: 600; margin-bottom: 8px; color: var(--oscuro); font-size: 0.9rem; }
-        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primario); box-shadow: 0 0 8px rgba(78,68,255,0.2); }
-        
-        .btn-calcular { 
-            background: var(--primario); color: white; border: none; padding: 15px; 
-            width: 100%; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        :root { --primario: #8e44ad; --fondo: #f4f7f6; --blanco: #ffffff; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fondo); margin: 0; padding: 20px; }
+
+        .header-purple { 
+            background: #8e44ad; color: white; padding: 15px 25px; 
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 10px; margin-bottom: 20px;
         }
 
-        .resultados { 
-            margin-top: 30px; padding: 20px; background: var(--gris); border-radius: 10px;
-            border-left: 5px solid var(--primario);
+        .card { background: var(--blanco); border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .section-title { font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+
+        .row-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* Estilo para los botones inferiores (Transfer y Moneda) */
+        .bottom-controls { 
+            background: #f9f9f9; padding: 15px; border-radius: 8px; 
+            display: flex; justify-content: space-around; margin-top: 20px;
+            font-size: 0.9rem;
         }
-        .res-fila { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
-        .res-fila:last-child { border: none; font-size: 1.3rem; color: var(--primario); }
+        .radio-group { display: flex; gap: 15px; align-items: center; }
+
+        .btn-calcular { 
+            background: var(--primario); color: white; border: none; padding: 15px; 
+            width: 100%; border-radius: 8px; font-size: 1.2rem; font-weight: bold; 
+            cursor: pointer; margin-top: 20px;
+        }
+
+        .resultado-final { text-align: center; color: var(--primario); font-size: 2.5rem; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-<div class="calc-container">
-    <h2 style="text-align: center; color: var(--primario);"><i class="fas fa-calculator"></i> Calculadora de Tarifas</h2>
-    <hr style="opacity: 0.2; margin-bottom: 25px;">
-
-    <div class="grid-inputs">
-        <div class="form-group">
-            <label>Kilómetros Totales</label>
-            <input type="number" id="km" placeholder="Ej: 500" required>
-        </div>
-        <div class="form-group">
-            <label>Días de Viaje</label>
-            <input type="number" id="dias" value="1" required>
-        </div>
-
-        <div class="form-group">
-            <label>Casetas ($)</label>
-            <input type="number" id="casetas" value="0">
-        </div>
-        <div class="form-group">
-            <label>Monto Transfer ($)</label>
-            <input type="number" id="transfer" value="0">
-        </div>
-        <div class="form-group">
-            <label>Diésel Thermo (Litros)</label>
-            <input type="number" id="diesel_thermo" value="0">
-        </div>
-
-        <div class="form-group">
-            <label>Tipo de Unidad</label>
-            <select id="unidad">
-                <option value="sencillo">Sencillo T3-S2</option>
-                <option value="full">Full T3-S2-S2</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Tipo de Caja</label>
-            <select id="caja">
-                <option value="seca">Caja Seca</option>
-                <option value="refrigerado">Refrigerado</option>
-                <option value="plataforma">Plataforma</option>
-            </select>
-        </div>
+    <div class="header-purple">
+        <h2 style="margin:0;"><i class="fas fa-file-invoice-dollar"></i> Cotizador Logístico Avanzado</h2>
+        <a href="dashboard.html" style="color:white; text-decoration:none; border:1px solid white; padding:5px 15px; border-radius:5px;">Volver</a>
     </div>
 
-    <button class="btn-calcular" onclick="calcularTarifa()">
-        GENERAR COTIZACIÓN
-    </button>
+    <div class="card">
+        <div class="grid-container">
+            <div>
+                <div class="section-title"><i class="fas fa-cogs"></i> Configuración de Operación</div>
+                <div class="form-group">
+                    <label>Tipo de Operación:</label>
+                    <select id="unidad">
+                        <option value="full">Full</option>
+                        <option value="sencillo">Sencillo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Caja:</label>
+                    <select id="caja">
+                        <option value="seca">Caja Seca</option>
+                        <option value="refrigerado">Refrigerada</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Unidad:</label>
+                    <select>
+                        <option>Propia</option>
+                        <option>Tercero</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Viaje:</label>
+                    <select>
+                        <option>IDA</option>
+                        <option>REDONDO</option>
+                    </select>
+                </div>
+            </div>
 
-    <div class="resultados">
-        <div class="res-fila">
-            <span>Pago Operador:</span>
-            <span id="res_pago_operador">$0.00</span>
-        </div>
-        <div class="res-fila">
-            <span>Costo Total Operativo:</span>
-            <span id="res_costo_total">$0.00</span>
-        </div>
-        <div class="res-fila">
-            <strong>Tarifa Sugerida (con Utilidad):</strong>
-            <strong id="res_tarifa">$0.00</strong>
-        </div>
+            <div>
+                <div class="section-title"><i class="fas fa-route"></i> Datos de Ruta y Costos</div>
+                <div class="row-inputs">
+                    <div class="form-group"><label>Origen:</label><input type="text" placeholder="Origen"></div>
+                    <div class="form-group"><label>Destino:</label><input type="text" placeholder="Destino"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="form-group"><label>Kilómetros:</label><input type="number" id="km" value="0"></div>
+                    <div class="form-group"><label>Casetas ($):</label><input type="number" id="casetas" value="0"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="form-group"><label>Días de Viaje:</label><input type="number" id="dias" value="1"></div>
+                    <div class="form-group">
+        <label>Precio Diésel ($):</label>
+        <input type="number" id="precio_diesel_manual" step="0.01" value="24.50">
     </div>
 </div>
+                <div class="row-inputs">
+                    <div class="form-group"><label>Rendimiento:</label><input type="number" step="0.1" value="2.5" id="rendimiento_manual"></div>
+                    <div class="form-group"><label>Costo Recolección:</label><input type="number" id="recoleccion" value="0"></div>
+                </div>
+                <div class="form-group">
+                    <label>Utilidad (%):</label>
+                    <input type="number" id="utilidad_input" value="30">
+                </div>
+            </div>
+        </div>
 
-<script src="js/calculo.js"></script>
+        <div class="bottom-controls">
+            <div class="radio-group">
+                <span>Transfer:</span>
+                <input type="radio" name="transfer" value="no" id="t_no" checked> <label for="t_no" style="display:inline">Sin Transfer</label>
+                <input type="radio" name="transfer" value="si" id="t_si"> <label for="t_si" style="display:inline">Con Transfer</label>
+            </div>
+            <div class="radio-group">
+                <span>Moneda:</span>
+                <input type="radio" name="moneda" value="mxn" id="m_mxn" checked> <label for="m_mxn" style="display:inline">Pesos (MXN)</label>
+                <input type="radio" name="moneda" value="usd" id="m_usd"> <label for="m_usd" style="display:inline">Dólares (USD)</label>
+            </div>
+        </div>
+
+        <button class="btn-calcular" onclick="calcularTarifa()">CALCULAR TARIFA FINAL</button>
+        
+        <div class="resultado-final" id="res_tarifa">
+            $0.00
+        </div>
+    </div>
+
+    <script src="js/calculo.js"></script>
 </body>
 </html>

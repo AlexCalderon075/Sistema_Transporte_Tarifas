@@ -82,3 +82,40 @@ document.getElementById('formEditarTarifa').addEventListener('submit', async (e)
         console.error("Error de conexión:", err);
     }
 });
+async function calcularTarifa() {
+    // 1. Capturamos el precio que el usuario escribió en la calculadora
+    const precioDiesel = parseFloat(document.getElementById('precio_diesel_manual').value) || 0;
+    
+    // 2. Capturamos los datos de la ruta
+    const km = parseFloat(document.getElementById('km').value) || 0;
+    const diasViaje = parseFloat(document.getElementById('dias').value) || 1;
+    const casetas = parseFloat(document.getElementById('casetas').value) || 0;
+    const transfer = parseFloat(document.getElementById('transfer').value) || 0;
+    const rendimiento = parseFloat(document.getElementById('rendimiento_manual').value) || 2.5;
+
+    // 3. Traemos del CATÁLOGO los litros fijos del Thermo
+    // Asegúrate de tener un concepto llamado 'litros_diesel_thermo' en Supabase
+    const litrosDieselThermo = getVal('litros_diesel_thermo');
+
+    // --- CÁLCULOS ---
+    const costoDieselTracto = (km / rendimiento) * precioDiesel;
+    const costoDieselThermo = litrosDieselThermo * precioDiesel;
+
+    // ... resto de tus sumas siguiendo la tabla de fórmulas ...
+    const admin = km * getVal('administracion');
+    const cargaLaboral = diasViaje * getVal('carga_laboral');
+    // (etcétera con todos los demás conceptos del catálogo)
+
+    // Sumamos todo para el Pago Operador y el Costo Total
+    const sumaGastos = costoDieselTracto + costoDieselThermo + casetas + transfer + admin + cargaLaboral; // (Suma todos los demás)
+    
+    const pagoOperador = sumaGastos * getVal('sueldo_operador_base');
+    const costoTotal = pagoOperador + sumaGastos;
+
+    // Aplicar utilidad
+    const porcUtilidad = parseFloat(document.getElementById('utilidad_input').value) / 100;
+    const tarifaFinal = costoTotal * (1 + porcUtilidad);
+
+    // Mostrar resultado
+    document.getElementById('res_tarifa').innerText = `$${tarifaFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+}
