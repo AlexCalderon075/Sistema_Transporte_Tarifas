@@ -292,3 +292,8 @@ button {
         
         .pdf-final-row { background-color: #e8f1ff; font-weight: bold; color: #003366; font-size: 11pt; }
     
+.card-icon i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    display: block;
+}
