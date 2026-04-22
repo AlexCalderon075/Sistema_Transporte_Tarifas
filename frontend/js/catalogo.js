@@ -58,8 +58,10 @@ document.getElementById('formEditarTarifa').addEventListener('submit', async (e)
     const datosActualizados = {
         id: document.getElementById('editId').value,
         valor: document.getElementById('editValor').value,
-        concepto: document.getElementById('editConcepto').value
+        concepto: document.getElementById('editConcepto').value // ¡Este es clave!
     };
+
+    console.log("Enviando a Render:", datosActualizados); // Esto lo verás en tu F12
 
     try {
         const res = await fetch(`${API_URL}/api/catalogo/update`, {
@@ -69,11 +71,14 @@ document.getElementById('formEditarTarifa').addEventListener('submit', async (e)
         });
 
         if (res.ok) {
-            alert("Concepto actualizado con éxito");
+            alert("¡Actualizado!");
             cerrarModal();
             cargarCatalogo(); 
+        } else {
+            const errorData = await res.json();
+            console.error("Error del servidor:", errorData);
         }
     } catch (err) {
-        alert("Error al actualizar el catálogo");
+        console.error("Error de conexión:", err);
     }
 });

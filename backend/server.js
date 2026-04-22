@@ -63,14 +63,14 @@ app.post('/api/catalogo/update', async (req, res) => {
     const { id, valor, concepto } = req.body;
     
     // Log para que veas el cambio en Render
-    console.log(`📢 Actualizando concepto: ${concepto} (ID: ${id}) -> Nuevo valor: ${valor}`);
+    console.log(` Actualizando concepto: ${concepto} (ID: ${id}) -> Nuevo valor: ${valor}`);
 
     const sql = `UPDATE catalogo_tarifas SET valor = $1 WHERE id = $2`;
     try {
         await pool.query(sql, [valor, id]);
         res.json({ mensaje: "Concepto actualizado con éxito" });
     } catch (err) {
-        console.error("❌ Error en update:", err.message);
+        console.error(" Error en update:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
