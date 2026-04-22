@@ -47,7 +47,6 @@ function abrirModal(item) {
     // 5. Mostramos el modal
     document.getElementById('modalEditar').style.display = 'block';
 }
-
 function cerrarModal() {
     document.getElementById('modalEditar').style.display = 'none';
 }
