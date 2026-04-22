@@ -6,10 +6,9 @@ const multer = require('multer');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT || 10000; // Render usa el puerto 10000 por defecto
+const PORT = process.env.PORT || 10000;
 
 // --- 1. CONEXIÓN A SUPABASE ---
-// Recuerda: Solo letras y números en la contraseña para evitar errores de símbolos
 const connectionString = "postgresql://postgres.pwqqatkoikeofloahbtz:Aarx7fgXDv6assee@aws-1-us-west-2.pooler.supabase.com:5432/postgres"
 
 const pool = new Pool({
@@ -17,74 +16,102 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false } 
 });
 
-// Probar conexión al iniciar
-pool.connect((err, client, release) => {
-    if (err) {
-        return console.error('❌ Error conectando a Supabase:', err.stack);
-    }
-    console.log('✅ Conexión a Supabase establecida correctamente');
-    release();
-});
-
 // --- 2. MIDDLEWARES ---
 app.use(cors());
 app.use(express.json());
 
-// Carpeta de fotos (Temporal en Render)
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 
 app.use(express.static(path.join(__dirname, '../frontend')));
 app.use('/uploads', express.static(uploadsDir));
 
-// Configuración de Multer para fotos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => { cb(null, uploadsDir); },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+    filename: (req, file, cb) => { cb(null, Date.now() + path.extname(file.originalname)); }
 });
 const upload = multer({ storage: storage });
 
-// --- 3. RUTAS API ---
+// --- 3. INICIALIZACIÓN DE TABLAS (Catálogo en PostgreSQL) ---
+// Esta función crea la tabla de catálogo si no existe en Supabase
+const initDB = async () => {
+    try {
+        await pool.query(`CREATE TABLE IF NOT EXISTS catalogo_tarifas (
+            id SERIAL PRIMARY KEY,
+            unidad TEXT UNIQUE,
+            rendimiento REAL,
+            precio_diesel REAL,
+            infraestructura REAL,
+            sueldo_operador REAL,
+            administracion REAL,
+            utilidad REAL
+        )`);
 
-// RUTA: Registro de Usuario
+        const res = await pool.query("SELECT COUNT(*) FROM catalogo_tarifas");
+        if (parseInt(res.rows[0].count) === 0) {
+            const sqlSeed = `INSERT INTO catalogo_tarifas 
+                (unidad, rendimiento, precio_diesel, infraestructura, sueldo_operador, administracion, utilidad) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7)`;
+            await pool.query(sqlSeed, ['Sencillo T3-S2', 2.5, 24.10, 1500, 2000, 10, 15]);
+            await pool.query(sqlSeed, ['Full T3-S2-S2', 1.8, 24.10, 2800, 3000, 10, 15]);
+            console.log("🌱 Catálogo inicial creado en Supabase");
+        }
+    } catch (err) {
+        console.error("❌ Error inicializando catálogo:", err.message);
+    }
+};
+initDB();
+
+// --- 4. RUTAS DEL CATÁLOGO (Corregidas para Supabase) ---
+
+app.get('/api/catalogo', async (req, res) => {
+    try {
+        const result = await pool.query("SELECT * FROM catalogo_tarifas ORDER BY id ASC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/catalogo/update', async (req, res) => {
+    const { id, rendimiento, precio_diesel, infraestructura, administracion, utilidad } = req.body;
+    const sql = `UPDATE catalogo_tarifas SET 
+                 rendimiento = $1, precio_diesel = $2, infraestructura = $3, 
+                 administracion = $4, utilidad = $5 
+                 WHERE id = $6`;
+    try {
+        await pool.query(sql, [rendimiento, precio_diesel, infraestructura, administracion, utilidad, id]);
+        res.json({ mensaje: "Catálogo actualizado con éxito" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- 5. OTRAS RUTAS (Usuarios e Historial - Mantener igual pero con Pool) ---
+
 app.post('/api/registro', async (req, res) => {
     const { nombre, telefono, correo, tarjeta_id, password } = req.body;
-    console.log(`Intentando registrar a: ${correo}`);
-
     const sql = `INSERT INTO usuarios (nombre, telefono, correo, tarjeta_id, password) VALUES ($1, $2, $3, $4, $5)`;
-    
     try {
         await pool.query(sql, [nombre, telefono, correo, tarjeta_id, password]);
         res.json({ mensaje: "Usuario creado exitosamente" });
     } catch (err) {
-        console.error("❌ ERROR EN REGISTRO:", err.message);
-        // Si el error es por correo duplicado (código 23505 en Postgres)
-        if (err.code === '23505') {
-            return res.status(400).json({ error: "El correo ya está registrado" });
-        }
-        res.status(400).json({ error: "Error de DB: " + err.message });
+        if (err.code === '23505') return res.status(400).json({ error: "El correo ya existe" });
+        res.status(400).json({ error: err.message });
     }
 });
 
-// RUTA: Login
 app.post('/api/login', async (req, res) => {
     const { correo, password } = req.body;
     try {
         const result = await pool.query('SELECT * FROM usuarios WHERE correo = $1 AND password = $2', [correo, password]);
-        if (result.rows.length > 0) {
-            res.json({ mensaje: "Entrando...", usuario: result.rows[0] });
-        } else {
-            res.status(401).json({ error: "Correo o contraseña incorrectos" });
-        }
+        if (result.rows.length > 0) res.json({ mensaje: "Entrando...", usuario: result.rows[0] });
+        else res.status(401).json({ error: "Credenciales incorrectas" });
     } catch (err) {
-        console.error("❌ ERROR EN LOGIN:", err.message);
-        res.status(500).json({ error: "Error en el servidor" });
+        res.status(500).json({ error: err.message });
     }
 });
 
-// RUTA: Guardar Cotización (Historial)
 app.post('/api/historial', async (req, res) => {
     const d = req.body;
     const sql = `INSERT INTO historial_calculos (
@@ -109,115 +136,18 @@ app.post('/api/historial', async (req, res) => {
 
     try {
         await pool.query(sql, params);
-        res.json({ mensaje: "Cotización guardada exitosamente" });
-    } catch (err) {
-        console.error("❌ ERROR AL GUARDAR HISTORIAL:", err.message);
-        res.status(500).json({ error: "No se pudo guardar la cotización" });
-    }
-});
-// Ruta catalogo
-db.run(`CREATE TABLE IF NOT EXISTS catalogo_tarifas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    unidad TEXT UNIQUE,           -- Ejemplo: 'T3-S2', 'T3-S3'
-    rendimiento_sencillo REAL,    -- KM por litro
-    rendimiento_full REAL,        -- KM por litro (menor que el sencillo)
-    precio_diesel REAL,
-    sueldo_operador REAL,         -- Puede ser monto fijo o por km
-    mantenimiento REAL,           -- Porcentaje o costo por viaje
-    infraestructura REAL,        -- Casetas, GPS, etc.
-    administracion REAL,          -- Gastos de oficina
-    utilidad REAL                -- Porcentaje deseado
-)`);
-
-// Después de crear la tabla catalogo_tarifas
-db.get("SELECT COUNT(*) as count FROM catalogo_tarifas", (err, row) => {
-    if (row && row.count === 0) {
-        const sql = `INSERT INTO catalogo_tarifas 
-            (unidad, rendimiento, precio_diesel, infraestructura, sueldo_operador, administracion, utilidad) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)`;
-        
-        // Insertamos dos configuraciones base para que tengas algo que editar
-        db.run(sql, ['T3-S2 (Sencillo)', 2.5, 24.10, 1500, 2000, 10, 15]);
-        db.run(sql, ['T3-S2-S2 (Full)', 1.8, 24.10, 2800, 3000, 10, 15]);
-        console.log(" Catálogo inicial creado con éxito");
-    }
-});
-
-app.post('/api/catalogo/update', (req, res) => {
-    const { id, rendimiento, precio_diesel, infraestructura, administracion, utilidad } = req.body;
-    const sql = `UPDATE catalogo_tarifas SET 
-                 rendimiento = ?, precio_diesel = ?, infraestructura = ?, 
-                 administracion = ?, utilidad = ? 
-                 WHERE id = ?`;
-    
-    db.run(sql, [rendimiento, precio_diesel, infraestructura, administracion, utilidad, id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ mensaje: "Actualizado con éxito" });
-    });
-})
-
-// RUTA: Obtener el historial filtrado por usuario
-app.get('/api/historial', async (req, res) => {
-    // Aquí es donde el servidor "lee" lo que enviaste en la URL
-    const nombreUsuario = req.query.usuario; 
-
-    try {
-        const result = await pool.query(
-            'SELECT * FROM historial_calculos WHERE usuario_nombre = $1 ORDER BY id DESC', 
-            [nombreUsuario]
-        );
-        res.json(result.rows);
+        res.json({ mensaje: "Cotización guardada" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// RUTA: Obtener Perfil de Usuario
-app.get('/api/usuario/:nombre', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT nombre, correo, telefono, tarjeta_id, foto FROM usuarios WHERE nombre = $1', [req.params.nombre]);
-        if (result.rows.length > 0) res.json(result.rows[0]);
-        else res.status(404).json({ error: "Usuario no encontrado" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+// Ruta comodín para el frontend (al final)
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend', 'index.html'));
 });
 
-// RUTA: Actualizar Perfil (con foto opcional)
-app.put('/api/usuario/actualizar/:nombreOriginal', upload.single('fotoArchivo'), async (req, res) => {
-    const { nombre, telefono, tarjeta_id } = req.body;
-    const { nombreOriginal } = req.params;
-    let fotoRuta = req.file ? `/uploads/${req.file.filename}` : req.body.fotoExistente;
-
-    const sql = `UPDATE usuarios SET nombre = $1, telefono = $2, tarjeta_id = $3, foto = $4 WHERE nombre = $5`;
-    try {
-        await pool.query(sql, [nombre, telefono, tarjeta_id, fotoRuta, nombreOriginal]);
-        res.json({ mensaje: "Perfil actualizado", foto: fotoRuta });
-    } catch (err) {
-        console.error("ERROR AL ACTUALIZAR PERFIL:", err.message);
-        res.status(500).json({ error: "Error al actualizar perfil" });
-    }
-});
-// RUTA: Recuperar Contraseña (Básico)
-app.post('/api/recuperar', async (req, res) => {
-    const { correo, tarjeta_id } = req.body;
-    try {
-        // Validamos por correo Y por su ID de tarjeta para que no cualquiera robe claves
-        const result = await pool.query(
-            'SELECT password FROM usuarios WHERE correo = $1 AND tarjeta_id = $2', 
-            [correo, tarjeta_id]
-        );
-
-        if (result.rows.length > 0) {
-            res.json({ password: result.rows[0].password });
-        } else {
-            res.status(404).json({ error: "Los datos no coinciden con nuestros registros." });
-        }
-    } catch (err) {
-        res.status(500).json({ error: "Error en el servidor" });
-    }
-});
 // Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor PostgreSQL activo en puerto ${PORT}`);
+    console.log(`🚀 Servidor Supabase activo en puerto ${PORT}`);
 });
