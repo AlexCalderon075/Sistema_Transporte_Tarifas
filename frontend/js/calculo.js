@@ -16,6 +16,23 @@ async function cargarPreciosCatalogo() {
         console.error("Error obteniendo catálogo:", err);
         alert("No se pudieron cargar los factores del catálogo. Revisa la conexión.");
     }
+
+    try {
+        const res = await fetch(`${API_URL}/api/catalogo`);
+        catalogoGlobal = await res.json();
+        
+        // --- AGREGA ESTO ---
+        // Busca el concepto "precio_diesel" en tu base de datos y ponlo en el input
+        const precioBD = getVal('precio_diesel'); 
+        if (precioBD > 0) {
+            document.getElementById('precio_diesel_manual').value = precioBD;
+        }
+        // -------------------
+
+        console.log("Catálogo cargado y precio diésel actualizado");
+    } catch (err) {
+        console.error("Error cargando catálogo", err);
+    }
 }
 
 // FUNCIÓN AUXILIAR PARA OBTENER VALORES POR NOMBRE DE CONCEPTO
