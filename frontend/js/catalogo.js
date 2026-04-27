@@ -1,64 +1,74 @@
 const API_URL = window.location.origin;
-let catalogoGlobal = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await cargarPreciosCatalogo();
+// 1. CARGAR DATOS AL ABRIR LA PÁGINA
+document.addEventListener('DOMContentLoaded', () => {
+    cargarCatalogo();
 });
 
-async function cargarPreciosCatalogo() {
+// 2. FUNCIÓN PARA OBTENER LOS DATOS DEL BACKEND
+async function cargarCatalogo() {
+    const tabla = document.getElementById('tabla-catalogo');
+    if (!tabla) return;
+
     try {
         const res = await fetch(`${API_URL}/api/catalogo`);
-        catalogoGlobal = await res.json();
+        const datos = await res.json();
+
+        // Limpiar tabla antes de llenar
+        tabla.innerHTML = '';
+
+        datos.forEach(item => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${item.concepto.replace(/_/g, ' ').toUpperCase()}</td>
+                <td>
+                    <input type="number" step="0.01" value="${item.valor}" 
+                           id="input-${item.id}" class="form-control">
+                </td>
+                <td><span class="badge-categoria">${item.categoria || 'GENERAL'}</span></td>
+                <td>
+                    <button onclick="guardarCambio(${item.id}, '${item.concepto}')" class="btn-save">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </td>
+            `;
+            tabla.appendChild(fila);
+        });
+        console.log("✅ Catálogo cargado correctamente");
     } catch (err) {
-        console.error("Error cargando catálogo", err);
+        console.error("❌ Error al cargar el catálogo:", err);
+        alert("Error al conectar con el servidor.");
     }
 }
 
-function getVal(nombre) {
-    const item = catalogoGlobal.find(i => i.concepto === nombre);
-    return item ? parseFloat(item.valor) : 0;
-}
+// 3. FUNCIÓN PARA GUARDAR CAMBIOS INDIVIDUALES
+async function guardarCambio(id, concepto) {
+    const nuevoValor = document.getElementById(`input-${id}`).value;
 
-async function calcularTarifa() {
-    // 1. Entradas manuales
-    const km = parseFloat(document.getElementById('km').value) || 0;
-    const dias = parseFloat(document.getElementById('dias').value) || 1;
-    const casetas = parseFloat(document.getElementById('casetas').value) || 0;
-    const precioDiesel = parseFloat(document.getElementById('precio_diesel_manual').value) || 0;
-    const rendimiento = parseFloat(document.getElementById('rendimiento').value) || 2.5;
-    const utilidadPorc = parseFloat(document.getElementById('utilidad_input').value) / 100;
-    const recoleccion = parseFloat(document.getElementById('recoleccion').value) || 0;
+    try {
+        const res = await fetch(`${API_URL}/api/catalogo/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ valor: nuevoValor })
+        });
 
-    const tieneTransfer = document.querySelector('input[name="transfer"]:checked').value === 'si';
-    const moneda = document.querySelector('input[name="moneda"]:checked').value;
+        if (res.ok) {
+            // Animación simple de éxito
+            const btn = event.target.closest('button');
+            btn.style.background = '#2ecc71';
+            btn.innerHTML = '<i class="fas fa-check"></i> ¡Listo!';
+            
+            setTimeout(() => {
+                btn.style.background = '#8e44ad';
+                btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
+            }, 2000);
 
-    // 2. Valores de la Base de Datos
-    const litrosThermo = getVal('litros_diesel_thermo'); 
-    const tc = getVal('tipo_de_cambio') || 18.5;
-    const costoTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
-
-    // 3. Cálculos de Diésel
-    const dieselTracto = (km / rendimiento) * precioDiesel;
-    const dieselThermo = litrosThermo * precioDiesel;
-
-    // 4. Gastos por KM y por DÍA
-    const gastosKM = km * (getVal('administracion') + getVal('direccion_ogoi') + getVal('diversos_trans') + getVal('llantas') + getVal('mantenimiento'));
-    const gastosDias = dias * (getVal('carga_laboral') + getVal('depreciacion') + getVal('infraestructura') + getVal('rastreo_sat') + getVal('seguro_caja') + getVal('seguro_tracto'));
-
-    // 5. Totales
-    const sumaGastos = dieselTracto + dieselThermo + casetas + costoTransfer + gastosKM + gastosDias + recoleccion;
-    const pagoOperador = sumaGastos * getVal('sueldo_operador_base');
-    const costoTotalMXN = pagoOperador + sumaGastos;
-    const tarifaFinalMXN = costoTotalMXN * (1 + utilidadPorc);
-
-    // 6. Conversión de Moneda
-    let mostrar = tarifaFinalMXN;
-    let prefijo = "$";
-
-    if (moneda === 'usd') {
-        mostrar = tarifaFinalMXN / tc;
-        prefijo = "USD $";
+            console.log(`✅ ${concepto} actualizado a ${nuevoValor}`);
+        } else {
+            throw new Error("Error al actualizar");
+        }
+    } catch (err) {
+        console.error("❌ Error:", err);
+        alert("No se pudo guardar el cambio.");
     }
-
-    document.getElementById('res_tarifa').innerText = `${prefijo}${mostrar.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
