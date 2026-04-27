@@ -16,48 +16,47 @@
         }
 
         .card { background: var(--blanco); border-radius: 10px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        
         .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .section-title { font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--primario); }
 
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #555; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
 
         .row-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-        /* Estilo para los botones inferiores (Transfer y Moneda) */
         .bottom-controls { 
             background: #f9f9f9; padding: 15px; border-radius: 8px; 
             display: flex; justify-content: space-around; margin-top: 20px;
-            font-size: 0.9rem;
+            font-size: 0.9rem; border: 1px solid #eee;
         }
         .radio-group { display: flex; gap: 15px; align-items: center; }
 
         .btn-calcular { 
             background: var(--primario); color: white; border: none; padding: 15px; 
             width: 100%; border-radius: 8px; font-size: 1.2rem; font-weight: bold; 
-            cursor: pointer; margin-top: 20px;
+            cursor: pointer; margin-top: 20px; transition: 0.3s;
         }
+        .btn-calcular:hover { background: #732d91; }
 
-        .resultado-final { text-align: center; color: var(--primario); font-size: 2.5rem; font-weight: bold; margin-top: 20px; }
+        .resultado-final { text-align: center; color: var(--primario); font-size: 2.8rem; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <div class="header-purple">
-        <h2 style="margin:0;"><i class="fas fa-file-invoice-dollar"></i> Cotizador Logístico Avanzado</h2>
+        <h2 style="margin:0;"><i class="fas fa-truck-moving"></i> Cotizador Logístico Avanzado</h2>
         <a href="dashboard.html" style="color:white; text-decoration:none; border:1px solid white; padding:5px 15px; border-radius:5px;">Volver</a>
     </div>
 
     <div class="card">
         <div class="grid-container">
             <div>
-                <div class="section-title"><i class="fas fa-cogs"></i> Configuración de Operación</div>
+                <div class="section-title"><i class="fas fa-sliders-h"></i> Configuración</div>
                 <div class="form-group">
                     <label>Tipo de Operación:</label>
                     <select id="unidad">
-                        <option value="full">Full</option>
+                        <option value="full">Full (Doble Remolque)</option>
                         <option value="sencillo">Sencillo</option>
                     </select>
                 </div>
@@ -65,7 +64,7 @@
                     <label>Tipo de Caja:</label>
                     <select id="caja">
                         <option value="seca">Caja Seca</option>
-                        <option value="refrigerado">Refrigerada</option>
+                        <option value="refrigerado">Refrigerada (Thermo)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -77,18 +76,18 @@
                 </div>
                 <div class="form-group">
                     <label>Tipo de Viaje:</label>
-                    <select>
-                        <option>IDA</option>
-                        <option>REDONDO</option>
+                    <select id="tipo_viaje">
+                        <option value="ida">IDA</option>
+                        <option value="redondo">REDONDO</option>
                     </select>
                 </div>
             </div>
 
             <div>
-                <div class="section-title"><i class="fas fa-route"></i> Datos de Ruta y Costos</div>
+                <div class="section-title"><i class="fas fa-gas-pump"></i> Insumos y Ruta</div>
                 <div class="row-inputs">
-                    <div class="form-group"><label>Origen:</label><input type="text" placeholder="Origen"></div>
-                    <div class="form-group"><label>Destino:</label><input type="text" placeholder="Destino"></div>
+                    <div class="form-group"><label>Origen:</label><input type="text" placeholder="Ciudad Origen"></div>
+                    <div class="form-group"><label>Destino:</label><input type="text" placeholder="Ciudad Destino"></div>
                 </div>
                 <div class="row-inputs">
                     <div class="form-group"><label>Kilómetros:</label><input type="number" id="km" value="0"></div>
@@ -96,42 +95,37 @@
                 </div>
                 <div class="row-inputs">
                     <div class="form-group"><label>Días de Viaje:</label><input type="number" id="dias" value="1"></div>
-                    <div class="form-group">
-        <label>Precio Diésel ($):</label>
-        <input type="number" id="precio_diesel_manual" step="0.01" value="24.50">
-    </div>
-</div>
+                    <div class="form-group"><label>Precio Diésel ($):</label><input type="number" id="precio_diesel_manual" step="0.01" value="24.50"></div>
+                </div>
                 <div class="row-inputs">
-                    <div class="form-group"><label>Rendimiento:</label><input type="number" step="0.1" value="2.5" id="rendimiento_manual"></div>
-                    <div class="form-group"><label>Costo Recolección:</label><input type="number" id="recoleccion" value="0"></div>
+                    <div class="form-group"><label>Rendimiento (km/l):</label><input type="number" step="0.1" id="rendimiento" value="2.5"></div>
+                    <div class="form-group"><label>Utilidad (%):</label><input type="number" id="utilidad_input" value="30"></div>
                 </div>
                 <div class="form-group">
-                    <label>Utilidad (%):</label>
-                    <input type="number" id="utilidad_input" value="30">
+                    <label>Costo Recolección ($):</label>
+                    <input type="number" id="recoleccion" value="0">
                 </div>
             </div>
         </div>
 
         <div class="bottom-controls">
             <div class="radio-group">
-                <span>Transfer:</span>
-                <input type="radio" name="transfer" value="no" id="t_no" checked> <label for="t_no" style="display:inline">Sin Transfer</label>
-                <input type="radio" name="transfer" value="si" id="t_si"> <label for="t_si" style="display:inline">Con Transfer</label>
+                <span style="font-weight:bold">Transfer:</span>
+                <label><input type="radio" name="transfer" value="no" checked> Sin Transfer</label>
+                <label><input type="radio" name="transfer" value="si"> Con Transfer</label>
             </div>
             <div class="radio-group">
-                <span>Moneda:</span>
-                <input type="radio" name="moneda" value="mxn" id="m_mxn" checked> <label for="m_mxn" style="display:inline">Pesos (MXN)</label>
-                <input type="radio" name="moneda" value="usd" id="m_usd"> <label for="m_usd" style="display:inline">Dólares (USD)</label>
+                <span style="font-weight:bold">Moneda:</span>
+                <label><input type="radio" name="moneda" value="mxn" checked> Pesos (MXN)</label>
+                <label><input type="radio" name="moneda" value="usd"> Dólares (USD)</label>
             </div>
         </div>
 
         <button class="btn-calcular" onclick="calcularTarifa()">CALCULAR TARIFA FINAL</button>
         
-        <div class="resultado-final" id="res_tarifa">
-            $0.00
-        </div>
+        <div class="resultado-final" id="res_tarifa">$0.00</div>
     </div>
 
-    <script src="js/calculo.js"></script>
+    <script src="js/calculo.js?v=2.0"></script>
 </body>
 </html>
