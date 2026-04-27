@@ -63,12 +63,12 @@ async function guardarCambio(id, concepto) {
                 btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
             }, 2000);
 
-            console.log(`✅ ${concepto} actualizado a ${nuevoValor}`);
+            console.log(`${concepto} actualizado a ${nuevoValor}`);
         } else {
             throw new Error("Error al actualizar");
         }
     } catch (err) {
-        console.error("❌ Error:", err);
+        console.error("Error:", err);
         alert("No se pudo guardar el cambio.");
     }
 }
