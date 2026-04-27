@@ -11,48 +11,39 @@ async function cargarPreciosCatalogo() {
     try {
         const res = await fetch(`${API_URL}/api/catalogo`);
         if (!res.ok) throw new Error("Error en la respuesta de la red");
-        catalogoGlobal = await res.json();
-    } catch (err) {
-        console.error("Error obteniendo catálogo:", err);
-        alert("No se pudieron cargar los factores del catálogo. Revisa la conexión.");
-    }
-
-    try {
-        const res = await fetch(`${API_URL}/api/catalogo`);
+        
         catalogoGlobal = await res.json();
         
-        // --- AGREGA ESTO ---
-        // Busca el concepto "precio_diesel" en tu base de datos y ponlo en el input
+        // Sincronizar precio del diesel de una vez
         const precioBD = getVal('precio_diesel'); 
         if (precioBD > 0) {
             document.getElementById('precio_diesel_manual').value = precioBD;
         }
-        // -------------------
 
-        console.log("Catálogo cargado y precio diésel actualizado");
+        console.log("✅ Catálogo cargado y sincronizado");
     } catch (err) {
-        console.error("Error cargando catálogo", err);
+        console.error("❌ Error cargando catálogo:", err);
+        alert("Atención: Los valores del catálogo no se cargaron. Los cálculos podrían ser incorrectos.");
     }
 }
 
-// FUNCIÓN AUXILIAR PARA OBTENER VALORES POR NOMBRE DE CONCEPTO
 function getVal(conceptoNombre) {
+    // Buscamos el concepto y nos aseguramos de devolver un NÚMERO real
     const item = catalogoGlobal.find(i => i.concepto === conceptoNombre);
     return item ? parseFloat(item.valor) : 0;
 }
 
 // 2. LÓGICA PRINCIPAL DE CÁLCULO
 async function calcularTarifa() {
-    // --- A. VALORES MANUALES (Del Formulario) ---
-    const km = parseFloat(document.getElementById('km').value) || 0;
-    const diasViaje = parseFloat(document.getElementById('dias').value) || 1;
-    const casetas = parseFloat(document.getElementById('casetas').value) || 0;
-    const precioDieselManual = parseFloat(document.getElementById('precio_diesel_manual').value) || 0;
-    const rendimiento = parseFloat(document.getElementById('rendimiento').value) || 2.5;
-    const utilidadPorcentaje = parseFloat(document.getElementById('utilidad_input').value) || 0;
-    const recoleccion = parseFloat(document.getElementById('recoleccion').value) || 0;
+    // Usamos Number() para asegurar que no haya concatenación de texto
+    const km = Number(document.getElementById('km').value) || 0;
+    const diasViaje = Number(document.getElementById('dias').value) || 1;
+    const casetas = Number(document.getElementById('casetas').value) || 0;
+    const precioDieselManual = Number(document.getElementById('precio_diesel_manual').value) || 0;
+    const rendimiento = Number(document.getElementById('rendimiento').value) || 2.5;
+    const utilidadPorcentaje = Number(document.getElementById('utilidad_input').value) || 0;
+    const recoleccion = Number(document.getElementById('recoleccion').value) || 0;
 
-    // Capturar Radio Buttons (Transfer y Moneda)
     const tieneTransfer = document.querySelector('input[name="transfer"]:checked').value === 'si';
     const monedaSeleccionada = document.querySelector('input[name="moneda"]:checked').value;
 
@@ -61,72 +52,53 @@ async function calcularTarifa() {
         return;
     }
 
-    // --- B. VALORES DEL CATÁLOGO (De la Base de Datos) ---
-    const litrosThermo = getVal('litros_diesel_thermo');
-    const sueldoOperadorBase = getVal('sueldo_operador_base');
+    // --- B. VALORES DEL CATÁLOGO ---
     const tc = getVal('tipo_de_cambio') || 18.50;
-    const montoTransferBD = getVal('transfer_costo');
+    const sueldoOperadorBase = getVal('sueldo_operador_base'); // Ejemplo: 0.15 (15%)
 
-    // --- C. CÁLCULOS SEGÚN TABLA DE FÓRMULAS ---
-    
-    // Diésel
+    // --- C. CÁLCULOS OPERATIVOS ---
     const costoDieselTracto = (km / rendimiento) * precioDieselManual;
-    const costoDieselThermo = litrosThermo * precioDieselManual;
+    const costoDieselThermo = getVal('litros_diesel_thermo') * precioDieselManual;
 
-    // Conceptos por Kilómetros
-    const admin = km * getVal('administracion');
-    const ogoi = km * getVal('direccion_ogoi');
-    const diversos = km * getVal('diversos_trans');
-    const llantas = km * getVal('llantas');
-    const mantenimiento = km * getVal('mantenimiento');
+    const gastosPorKm = (
+        getVal('administracion') + 
+        getVal('direccion_ogoi') + 
+        getVal('diversos_trans') + 
+        getVal('llantas') + 
+        getVal('mantenimiento')
+    ) * km;
 
-    // Conceptos por Días
-    const cargaLaboral = diasViaje * getVal('carga_laboral');
-    const depreciacion = diasViaje * getVal('depreciacion');
-    const infraestructura = diasViaje * getVal('infraestructura');
-    const rastreo = diasViaje * getVal('rastreo_sat');
-    const seguroCaja = diasViaje * getVal('seguro_caja');
-    const seguroTracto = diasViaje * getVal('seguro_tracto');
+    const gastosPorDia = (
+        getVal('carga_laboral') + 
+        getVal('depreciacion') + 
+        getVal('infraestructura') + 
+        getVal('rastreo_sat') + 
+        getVal('seguro_caja') + 
+        getVal('seguro_tracto')
+    ) * diasViaje;
 
-    // Transfer
-    const montoTransferFinal = tieneTransfer ? montoTransferBD : 0;
+    const montoTransferFinal = tieneTransfer ? getVal('transfer_costo') : 0;
 
-    // --- D. TOTALIZACIÓN ---
+    // --- D. TOTALIZACIÓN (Sin errores de millones) ---
+    const sumaConceptosOperativos = montoTransferFinal + casetas + costoDieselTracto + 
+                                    costoDieselThermo + gastosPorKm + gastosPorDia + recoleccion;
 
-    // 1. Suma base de conceptos operativos
-    const sumaConceptosOperativos = (
-        montoTransferFinal + casetas + costoDieselTracto + costoDieselThermo +
-        cargaLaboral + mantenimiento + llantas + seguroTracto + seguroCaja +
-        depreciacion + rastreo + diversos + admin + infraestructura + ogoi + recoleccion
-    );
-
-    // 2. Pago Operador: (Suma de conceptos) * Factor Sueldo
+    // Pago Operador (Suma * Factor)
     const pagoOperador = sumaConceptosOperativos * sueldoOperadorBase;
 
-    // 3. Costo Total: Pago Operador + Suma de Conceptos
-    const costoTotalMXN = pagoOperador + sumaConceptosOperativos;
+    // Costo Total
+    const costoTotalMXN = sumaConceptosOperativos + pagoOperador;
 
-    // 4. Tarifa Final (con Utilidad)
-    const tarifaFinalMXN = costoTotalMXN * (1 + (utilidadPorcentaje / 100));
+    // Tarifa Final con margen (Fórmula de margen real)
+    const factorUtilidad = 1 - (utilidadPorcentaje / 100);
+    const tarifaFinalMXN = factorUtilidad > 0 ? (costoTotalMXN / factorUtilidad) : costoTotalMXN;
 
-    // --- E. CONVERSIÓN Y VISUALIZACIÓN ---
-    let valorAMostrar = tarifaFinalMXN;
-    let simbolo = "$";
-    let textoMoneda = "MXN";
+    // --- E. VISUALIZACIÓN ---
+    let valorFinal = monedaSeleccionada === 'usd' ? (tarifaFinalMXN / tc) : tarifaFinalMXN;
+    let prefijo = monedaSeleccionada === 'usd' ? 'USD $' : '$';
 
-    if (monedaSeleccionada === 'usd') {
-        valorAMostrar = tarifaFinalMXN / tc;
-        simbolo = "USD $";
-        textoMoneda = "USD";
-    }
-
-    // Inyectar resultados en el HTML
-    const resultadoDiv = document.getElementById('res_tarifa');
-    resultadoDiv.innerText = `${simbolo}${valorAMostrar.toLocaleString('en-US', {
+    document.getElementById('res_tarifa').innerText = prefijo + valorFinal.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    })}`;
-
-    // Logs opcionales para depuración
-    console.log(`Cálculo finalizado en ${textoMoneda}`);
+    });
 }
