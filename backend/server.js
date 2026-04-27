@@ -34,7 +34,6 @@ app.get('/api/catalogo', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
 // ACTUALIZAR CONCEPTO (Compatible con catalogo.js)
 // Cambiamos a PUT y usamos el ID en la URL para que coincida con el fetch
 app.put('/api/catalogo/:id', async (req, res) => {
