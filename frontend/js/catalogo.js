@@ -1,121 +1,64 @@
 const API_URL = window.location.origin;
+let catalogoGlobal = [];
 
-document.addEventListener('DOMContentLoaded', cargarCatalogo);
+document.addEventListener('DOMContentLoaded', async () => {
+    await cargarPreciosCatalogo();
+});
 
-async function cargarCatalogo() {
+async function cargarPreciosCatalogo() {
     try {
         const res = await fetch(`${API_URL}/api/catalogo`);
-        const datos = await res.json();
-        const cuerpo = document.getElementById('cuerpoCatalogo');
-        cuerpo.innerHTML = '';
-
-        datos.forEach(item => {
-            // Formateamos el texto del concepto para que no se vea con guiones bajos
-            const nombreLimpio = item.concepto.replace(/_/g, ' ').toUpperCase();
-            
-            cuerpo.innerHTML += `
-                <tr>
-                    <td><strong>${nombreLimpio}</strong></td>
-                    <td>${item.categoria || 'N/A'}</td>
-                    <td class="text-right"><strong>$${item.valor.toLocaleString()}</strong></td>
-                    <td>
-                        <button class="btn-edit" onclick="abrirModal(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-                            <i class="fas fa-edit"></i> Editar
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
+        catalogoGlobal = await res.json();
     } catch (err) {
-        console.error("Error cargando catálogo:", err);
+        console.error("Error cargando catálogo", err);
     }
 }
 
-function abrirModal(item) {
-    // 1. Corregimos el título
-    document.getElementById('nombreConcepto').innerText = item.concepto.replace(/_/g, ' ').toUpperCase();
-    
-    // 2. Cargamos el ID (invisible para el usuario)
-    document.getElementById('editId').value = item.id;
-    
-    // 3. Cargamos el Valor actual
-    document.getElementById('editValor').value = item.valor;
-    
-    // 4. Cargamos el nombre técnico (invisible)
-    document.getElementById('editConcepto').value = item.concepto;
-    
-    // 5. Mostramos el modal
-    document.getElementById('modalEditar').style.display = 'block';
-}
-function cerrarModal() {
-    document.getElementById('modalEditar').style.display = 'none';
+function getVal(nombre) {
+    const item = catalogoGlobal.find(i => i.concepto === nombre);
+    return item ? parseFloat(item.valor) : 0;
 }
 
-// Guardar cambios
-document.getElementById('formEditarTarifa').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const datosActualizados = {
-        id: document.getElementById('editId').value,
-        valor: document.getElementById('editValor').value,
-        concepto: document.getElementById('editConcepto').value // ¡Este es clave!
-    };
-
-    console.log("Enviando a Render:", datosActualizados); // Esto lo verás en tu F12
-
-    try {
-        const res = await fetch(`${API_URL}/api/catalogo/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(datosActualizados)
-        });
-
-        if (res.ok) {
-            alert("¡Actualizado!");
-            cerrarModal();
-            cargarCatalogo(); 
-        } else {
-            const errorData = await res.json();
-            console.error("Error del servidor:", errorData);
-        }
-    } catch (err) {
-        console.error("Error de conexión:", err);
-    }
-});
 async function calcularTarifa() {
-    // 1. Capturamos el precio que el usuario escribió en la calculadora
-    const precioDiesel = parseFloat(document.getElementById('precio_diesel_manual').value) || 0;
-    
-    // 2. Capturamos los datos de la ruta
+    // 1. Entradas manuales
     const km = parseFloat(document.getElementById('km').value) || 0;
-    const diasViaje = parseFloat(document.getElementById('dias').value) || 1;
+    const dias = parseFloat(document.getElementById('dias').value) || 1;
     const casetas = parseFloat(document.getElementById('casetas').value) || 0;
-    const transfer = parseFloat(document.getElementById('transfer').value) || 0;
-    const rendimiento = parseFloat(document.getElementById('rendimiento_manual').value) || 2.5;
+    const precioDiesel = parseFloat(document.getElementById('precio_diesel_manual').value) || 0;
+    const rendimiento = parseFloat(document.getElementById('rendimiento').value) || 2.5;
+    const utilidadPorc = parseFloat(document.getElementById('utilidad_input').value) / 100;
+    const recoleccion = parseFloat(document.getElementById('recoleccion').value) || 0;
 
-    // 3. Traemos del CATÁLOGO los litros fijos del Thermo
-    // Asegúrate de tener un concepto llamado 'litros_diesel_thermo' en Supabase
-    const litrosDieselThermo = getVal('litros_diesel_thermo');
+    const tieneTransfer = document.querySelector('input[name="transfer"]:checked').value === 'si';
+    const moneda = document.querySelector('input[name="moneda"]:checked').value;
 
-    // --- CÁLCULOS ---
-    const costoDieselTracto = (km / rendimiento) * precioDiesel;
-    const costoDieselThermo = litrosDieselThermo * precioDiesel;
+    // 2. Valores de la Base de Datos
+    const litrosThermo = getVal('litros_diesel_thermo'); 
+    const tc = getVal('tipo_de_cambio') || 18.5;
+    const costoTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
 
-    // ... resto de tus sumas siguiendo la tabla de fórmulas ...
-    const admin = km * getVal('administracion');
-    const cargaLaboral = diasViaje * getVal('carga_laboral');
-    // (etcétera con todos los demás conceptos del catálogo)
+    // 3. Cálculos de Diésel
+    const dieselTracto = (km / rendimiento) * precioDiesel;
+    const dieselThermo = litrosThermo * precioDiesel;
 
-    // Sumamos todo para el Pago Operador y el Costo Total
-    const sumaGastos = costoDieselTracto + costoDieselThermo + casetas + transfer + admin + cargaLaboral; // (Suma todos los demás)
-    
+    // 4. Gastos por KM y por DÍA
+    const gastosKM = km * (getVal('administracion') + getVal('direccion_ogoi') + getVal('diversos_trans') + getVal('llantas') + getVal('mantenimiento'));
+    const gastosDias = dias * (getVal('carga_laboral') + getVal('depreciacion') + getVal('infraestructura') + getVal('rastreo_sat') + getVal('seguro_caja') + getVal('seguro_tracto'));
+
+    // 5. Totales
+    const sumaGastos = dieselTracto + dieselThermo + casetas + costoTransfer + gastosKM + gastosDias + recoleccion;
     const pagoOperador = sumaGastos * getVal('sueldo_operador_base');
-    const costoTotal = pagoOperador + sumaGastos;
+    const costoTotalMXN = pagoOperador + sumaGastos;
+    const tarifaFinalMXN = costoTotalMXN * (1 + utilidadPorc);
 
-    // Aplicar utilidad
-    const porcUtilidad = parseFloat(document.getElementById('utilidad_input').value) / 100;
-    const tarifaFinal = costoTotal * (1 + porcUtilidad);
+    // 6. Conversión de Moneda
+    let mostrar = tarifaFinalMXN;
+    let prefijo = "$";
 
-    // Mostrar resultado
-    document.getElementById('res_tarifa').innerText = `$${tarifaFinal.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+    if (moneda === 'usd') {
+        mostrar = tarifaFinalMXN / tc;
+        prefijo = "USD $";
+    }
+
+    document.getElementById('res_tarifa').innerText = `${prefijo}${mostrar.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 }
