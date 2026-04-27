@@ -14,44 +14,47 @@ document.addEventListener('DOMContentLoaded', () => {
 // 2. CARGAR DATOS EN LA TABLA
 async function cargarCatalogo() {
     const tabla = document.getElementById('cuerpoCatalogo');
-    if (!tabla) return;
+    if (!tabla) {
+        console.error("❌ No se encontró el elemento 'cuerpoCatalogo' en el HTML");
+        return;
+    }
 
     try {
-        const res = await fetch(`${API_URL}/api/catalogo`);
-        if (!res.ok) throw new Error("No se pudo obtener el catálogo");
+        console.log("Anlizando conexión con:", `${window.location.origin}/api/catalogo`);
+        const res = await fetch(`/api/catalogo`); // Usamos ruta relativa por seguridad
+        
+        if (!res.ok) throw new Error("Error en la respuesta del servidor");
         
         const datos = await res.json();
-        tabla.innerHTML = '';
+        console.log("📦 Datos recibidos:", datos);
 
+        if (datos.length === 0) {
+            tabla.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay datos en la base de datos</td></tr>';
+            return;
+        }
+
+        tabla.innerHTML = '';
         datos.forEach(item => {
             const fila = document.createElement('tr');
-
-            // Creamos las celdas con texto plano primero para evitar errores de sintaxis
-            const nombreLimpio = item.concepto.replace(/_/g, ' ').toUpperCase();
-            const valorFormateado = parseFloat(item.valor).toFixed(2);
-
             fila.innerHTML = `
-                <td>${nombreLimpio}</td>
+                <td>${item.concepto.replace(/_/g, ' ').toUpperCase()}</td>
                 <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-size:0.75rem;">${item.categoria || 'GENERAL'}</span></td>
-                <td class="text-right">$${valorFormateado}</td>
+                <td class="text-right">$${parseFloat(item.valor).toFixed(2)}</td>
                 <td style="text-align: center;">
                     <button class="btn-edit" id="btn-${item.id}">
                         <i class="fas fa-edit"></i> Editar
                     </button>
                 </td>
             `;
-
             tabla.appendChild(fila);
 
-            // Asignamos el evento click al botón de forma segura
             document.getElementById(`btn-${item.id}`).onclick = () => {
                 abrirModal(item.id, item.concepto, item.valor);
             };
         });
-        
-        console.log("✅ Datos cargados correctamente");
     } catch (err) {
-        console.error("❌ Error en cargarCatalogo:", err);
+        console.error("❌ Error fatal:", err);
+        tabla.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">Error al conectar con el servidor</td></tr>';
     }
 }
 
