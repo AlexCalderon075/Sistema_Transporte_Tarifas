@@ -106,3 +106,35 @@ async function calcularTarifa() {
         alert("Ocurrió un error al procesar los datos.");
     }
 }
+async function guardarEnHistorial() {
+    // Si no se ha calculado nada, no hacemos nada
+    if (!datosParaHistorial) {
+        alert("Primero debes realizar un cálculo.");
+        return;
+    }
+
+    try {
+        console.log("Enviando datos a la base de datos...", datosParaHistorial);
+
+        const res = await fetch(`${API_URL}/api/historial_calculo`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(datosParaHistorial)
+        });
+
+        if (res.ok) {
+            alert("¡Cotización guardada en el historial con éxito!");
+            // Ocultamos el botón para evitar duplicados
+            document.getElementById('btn-guardar').style.display = 'none';
+        } else {
+            const errorServidor = await res.json();
+            console.error("Error del servidor:", errorServidor);
+            alert(" Error al guardar: " + (errorServidor.message || "Problema en el servidor"));
+        }
+    } catch (err) {
+        console.error("Error de red:", err);
+        alert("No se pudo conectar con el servidor. Revisa tu conexión.");
+    }
+}
