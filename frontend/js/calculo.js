@@ -116,7 +116,7 @@ async function guardarEnHistorial() {
     try {
         console.log("Enviando datos a la base de datos...", datosParaHistorial);
 
-        const res = await fetch(`${API_URL}/api/historial_calculo`, {
+        const res = await fetch(`${API_URL}/api/historial_calculos`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
