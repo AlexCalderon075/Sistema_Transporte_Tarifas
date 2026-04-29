@@ -53,24 +53,29 @@
         <div class="grid-container">
             <div>
                 <div class="section-title"><i class="fas fa-sliders-h"></i> Configuración</div>
+                
                 <div class="form-group">
                     <label>Tipo de Operación:</label>
-                    <select id="unidad">
+                    <select id="tipo_operacion"> <option value="sencillo">Sencillo</option>
                         <option value="full">Full (Doble Remolque)</option>
-                        <option value="sencillo">Sencillo</option>
                     </select>
                 </div>
+
                 <div class="form-group">
                     <label>Tipo de Caja:</label>
-                    <select id="caja">
-                        <option value="seca">Caja Seca</option>
+                    <select id="tipo_caja"> <option value="seca">Caja Seca</option>
                         <option value="refrigerado">Refrigerada (Thermo)</option>
                     </select>
                 </div>
+
                 <div class="form-group">
-                <label>Tipo de Unidad:</label>
-                <select id="tipo_unidad"> <option value="propia">Propia</option> <option value="renta">Tercero</option> </select>
-            </div>
+                    <label>Tipo de Unidad:</label>
+                    <select id="tipo_unidad">
+                        <option value="propia">Propia</option> 
+                        <option value="renta">Tercero</option> 
+                    </select>
+                </div>
+
                 <div class="form-group">
                     <label>Tipo de Viaje:</label>
                     <select id="tipo_viaje">
