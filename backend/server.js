@@ -74,26 +74,21 @@ app.post('/api/login', async (req, res) => {
 });
 
 // --- 5. RUTA HISTORIAL ---
-app.post('/api/historial', async (req, res) => {
-    const d = req.body;
-    const sql = `INSERT INTO historial_calculos (
-        fecha, origen, destino, unidad, tipo_viaje, tipo_caja, km, 
-        costo_operativo, utilidad, tarifa_final, usuario_nombre,
-        dias_viaje, costo_recoleccion, con_transfer, moneda
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`;
-
-    const params = [
-        d.fecha, d.origen, d.destino, d.unidad, d.tipo_viaje, d.tipo_caja, d.km,
-        d.costo_operativo, d.utilidad, d.tarifa_final, d.usuario_nombre,
-        d.dias_viaje, d.costo_recoleccion, d.con_transfer, d.moneda
-    ];
-
+app.post('/api/historial_calculo', async (req, res) => {
     try {
-        await pool.query(sql, params);
-        res.json({ mensaje: "Cotización guardada" });
+        const datos = req.body;
+        // IMPORTANTE: El nombre de la tabla debe ser exacto a Supabase
+        const { data, error } = await supabase
+            .from('historial_calculos') // <--- Aquí agregamos la 's'
+            .insert([datos]);
+
+        if (error) {
+            console.error("Error de Supabase:", error);
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(200).json({ message: "Guardado en historial_calculos" });
     } catch (err) {
-        console.error("Error guardando historial:", err.message);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: "Error interno" });
     }
 });
 

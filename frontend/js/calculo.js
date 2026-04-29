@@ -107,34 +107,25 @@ async function calcularTarifa() {
     }
 }
 async function guardarEnHistorial() {
-    // Si no se ha calculado nada, no hacemos nada
-    if (!datosParaHistorial) {
-        alert("Primero debes realizar un cálculo.");
-        return;
-    }
+    if (!datosParaHistorial) return;
 
     try {
-        console.log("Enviando datos a la base de datos...", datosParaHistorial);
-
-        const res = await fetch(`${API_URL}/api/historial_calculos`, {
+        // Esta URL debe ser la misma que definiste en app.post(...) de tu servidor
+        const res = await fetch(`${API_URL}/api/historial_calculo`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(datosParaHistorial)
         });
 
         if (res.ok) {
-            alert("¡Cotización guardada en el historial con éxito!");
-            // Ocultamos el botón para evitar duplicados
+            alert("✅ Cotización guardada en historial_calculos correctamente.");
             document.getElementById('btn-guardar').style.display = 'none';
         } else {
-            const errorServidor = await res.json();
-            console.error("Error del servidor:", errorServidor);
-            alert(" Error al guardar: " + (errorServidor.message || "Problema en el servidor"));
+            const errorData = await res.json();
+            alert("❌ Error: " + errorData.error);
         }
     } catch (err) {
-        console.error("Error de red:", err);
-        alert("No se pudo conectar con el servidor. Revisa tu conexión.");
+        console.error("Error de conexión:", err);
+        alert("No se pudo conectar con el servidor. Verifica que el servidor esté corriendo.");
     }
 }
