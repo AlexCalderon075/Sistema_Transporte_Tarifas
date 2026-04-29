@@ -30,9 +30,12 @@ function getVal(conceptoNombre) {
 }
 
 // 2. LÓGICA DE CÁLCULO ACTUALIZADA
+a// Variable global para retener los datos después de calcular
+let datosParaHistorial = null;
+
 async function calcularTarifa() {
     try {
-        // --- A. CAPTURA DE INPUTS NUMÉRICOS ---
+        // 1. CAPTURA DE INPUTS
         let km = Number(document.getElementById('km').value) || 0;
         let casetas = Number(document.getElementById('casetas').value) || 0;
         const diasViaje = Number(document.getElementById('dias').value) || 1;
@@ -41,76 +44,113 @@ async function calcularTarifa() {
         const utilidadPorcentaje = Number(document.getElementById('utilidad_input').value) || 0;
         const recoleccion = Number(document.getElementById('recoleccion').value) || 0;
 
-        // --- B. CAPTURA DE SELECTORES (IDs corregidos) ---
-        const tipoViaje = document.getElementById('tipo_viaje').value;     // ida / redondo
-        const tipoOperacion = document.getElementById('tipo_operacion').value; // sencillo / full
-        const tipoCaja = document.getElementById('tipo_caja').value;           // seca / refrigerado
-        const tipoUnidad = document.getElementById('tipo_unidad').value;       // propia / renta
-
+        const tipoViaje = document.getElementById('tipo_viaje').value;
+        const tipoOperacion = document.getElementById('tipo_operacion').value;
+        const tipoCaja = document.getElementById('tipo_caja').value;
+        const tipoUnidad = document.getElementById('tipo_unidad').value;
         const tieneTransfer = document.querySelector('input[name="transfer"]:checked').value === 'si';
         const monedaSeleccionada = document.querySelector('input[name="moneda"]:checked').value;
 
-        if (km <= 0) {
-            alert("Ingresa los kilómetros");
-            return;
-        }
+        if (km <= 0) { alert("Ingresa los kilómetros"); return; }
 
-        // --- C. APLICACIÓN DE REGLAS DE NEGOCIO ---
-
-        // 1. Lógica de Tipo de Viaje
+        // 2. LÓGICA DE NEGOCIO (Viaje Redondo)
         if (tipoViaje === 'redondo') {
-            km = km * 2;
-            casetas = casetas * 2;
+            km *= 2;
+            casetas *= 2;
         }
 
-        // 2. Cargos de la Base de Datos
-        const cargoRenta = (tipoUnidad === 'renta') ? getVal('costo_renta') : 0;
-        const extraRefri = (tipoCaja === 'refrigerado') ? getVal('extra_refrigerado') : 0;
-        const dieselThermo = (tipoCaja === 'refrigerado') ? (getVal('litros_diesel_thermo') * precioDiesel) : 0;
-        const factorFull = (tipoOperacion === 'full') ? getVal('factor_full') : 1;
-        const montoTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
+        // 3. OBTENCIÓN DE VALORES DEL CATÁLOGO
+        const tcActual = getVal('tipo_de_cambio') || 18.50;
+        const fFull = (tipoOperacion === 'full') ? getVal('factor_full') : 1;
+        const eRefri = (tipoCaja === 'refrigerado') ? getVal('extra_refrigerado') : 0;
+        const dThermo = (tipoCaja === 'refrigerado') ? (getVal('litros_diesel_thermo') * precioDiesel) : 0;
+        const cRenta = (tipoUnidad === 'renta') ? getVal('costo_renta') : 0;
+        const mTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
 
-        // --- D. CÁLCULOS OPERATIVOS ---
-        const costoDieselTracto = (km / rendimiento) * precioDiesel;
+        // 4. CÁLCULOS OPERATIVOS (Desglose para historial)
+        const d_tracto = (km / rendimiento) * precioDiesel;
+        const g_km = (getVal('administracion') + getVal('direccion_ogoi') + getVal('diversos_trans') + getVal('llantas') + getVal('mantenimiento')) * km;
+        const g_dia = (getVal('carga_laboral') + getVal('depreciacion') + getVal('infraestructura') + getVal('rastreo_sat') + getVal('seguro_caja') + getVal('seguro_tracto')) * diasViaje;
 
-        const gastosKm = (
-            getVal('administracion') + getVal('direccion_ogoi') + 
-            getVal('diversos_trans') + getVal('llantas') + getVal('mantenimiento')
-        ) * km;
+        let sumaBase = (d_tracto + dThermo + g_km + g_dia + casetas + recoleccion + eRefri + cRenta + mTransfer);
+        sumaBase *= fFull;
 
-        const gastosDia = (
-            getVal('carga_laboral') + getVal('depreciacion') + getVal('infraestructura') + 
-            getVal('rastreo_sat') + getVal('seguro_caja') + getVal('seguro_tracto')
-        ) * diasViaje;
-
-        // --- E. SUMA TOTAL ---
-        let sumaBase = (
-            costoDieselTracto + dieselThermo + gastosKm + gastosDia + 
-            casetas + recoleccion + extraRefri + cargoRenta + montoTransfer
-        );
-
-        // Aplicar el factor FULL si corresponde
-        sumaBase = sumaBase * factorFull;
-
-        // Sueldo Operador e Impuestos/Margen
         const pagoOperador = sumaBase * getVal('sueldo_operador_base');
         const costoTotalMXN = sumaBase + pagoOperador;
         const tarifaFinalMXN = costoTotalMXN * (1 + (utilidadPorcentaje / 100));
 
-        // --- F. CONVERSIÓN Y MUESTRA ---
-        let resultado = tarifaFinalMXN;
-        if (monedaSeleccionada === 'usd') {
-            resultado = tarifaFinalMXN / (getVal('tipo_de_cambio') || 18.50);
-        }
+        // Conversión a Moneda Seleccionada
+        let valorFinal = (monedaSeleccionada === 'usd') ? (tarifaFinalMXN / tcActual) : tarifaFinalMXN;
 
+        // 5. MOSTRAR RESULTADO EN PANTALLA
         const simbolo = (monedaSeleccionada === 'usd') ? 'USD $' : '$';
-        document.getElementById('res_tarifa').innerText = `${simbolo}${resultado.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
+        document.getElementById('res_tarifa').innerText = `${simbolo}${valorFinal.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+
+        // 6. PREPARAR OBJETO COMPLETO PARA HISTORIAL_CALCULO
+        datosParaHistorial = {
+            fecha: new Date().toISOString(),
+            origen: document.getElementById('origen').value || "N/A",
+            destino: document.getElementById('destino').value || "N/A",
+            unidad: tipoUnidad,
+            tipo_viaje: tipoViaje,
+            tipo_caja: tipoCaja,
+            tipo_operacion: tipoOperacion,
+            km: km,
+            peso: 0, // Puedes agregar un input para esto si lo requieres
+            costo_operativo: costoTotalMXN,
+            utilidad: tarifaFinalMXN - costoTotalMXN,
+            tarifa_final: valorFinal,
+            usuario_nombre: "Alex Calderon", 
+            dias_viaje: diasViaje,
+            costo_recoleccion: recoleccion,
+            con_transfer: tieneTransfer ? 'si' : 'no',
+            moneda: monedaSeleccionada,
+            monto_casetas: casetas,
+            precio_diesel: precioDiesel,
+            rendimiento: rendimiento,
+            porcentaje_utilidad: utilidadPorcentaje,
+            tarjeta_operador: pagoOperador,
+            // Desglose detallado desde Catálogo
+            carga_laboral: getVal('carga_laboral') * diasViaje,
+            mantenimiento: getVal('mantenimiento') * km,
+            llantas: getVal('llantas') * km,
+            seguro_tracto: getVal('seguro_tracto') * diasViaje,
+            seguro_caja: getVal('seguro_caja') * diasViaje,
+            depreciacion: getVal('depreciacion') * diasViaje,
+            rastreo_satelital: getVal('rastreo_sat') * diasViaje,
+            diversos_trans: getVal('diversos_trans') * km,
+            administracion: getVal('administracion') * km,
+            infraestructura: getVal('infraestructura') * diasViaje,
+            direccion_ogoi: getVal('direccion_ogoi') * km
+        };
+
+        // Mostrar botón de guardar
+        document.getElementById('btn-guardar').style.display = 'block';
 
     } catch (err) {
-        console.error("Error al calcular:", err);
-        alert("Falta configurar algún campo en el HTML (ID no encontrado)");
+        console.error("Error en el cálculo:", err);
+        alert("Ocurrió un error. Verifica que los campos del catálogo en Supabase estén correctos.");
+    }
+}
+
+async function guardarEnHistorial() {
+    if (!datosParaHistorial) return;
+
+    try {
+        const res = await fetch(`${API_URL}/api/historial_calculo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosParaHistorial)
+        });
+
+        if (res.ok) {
+            alert("✅ Cotización guardada en el historial.");
+            document.getElementById('btn-guardar').style.display = 'none';
+        } else {
+            alert("❌ No se pudo guardar. Revisa la conexión con el servidor.");
+        }
+    } catch (err) {
+        console.error("Error al guardar:", err);
+        alert("Error de red al intentar guardar.");
     }
 }

@@ -6,7 +6,7 @@
     <title>Cotizador Logístico Avanzado</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primario: #8e44ad; --fondo: #f4f7f6; --blanco: #ffffff; }
+        :root { --primario: #8e44ad; --fondo: #f4f7f6; --blanco: #ffffff; --verde: #27ae60; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--fondo); margin: 0; padding: 20px; }
 
         .header-purple { 
@@ -39,6 +39,13 @@
         }
         .btn-calcular:hover { background: #732d91; }
 
+        .btn-guardar {
+            background: var(--verde); color: white; border: none; padding: 15px; 
+            width: 100%; border-radius: 8px; font-size: 1.1rem; font-weight: bold; 
+            cursor: pointer; margin-top: 10px; display: none; transition: 0.3s;
+        }
+        .btn-guardar:hover { background: #219150; }
+
         .resultado-final { text-align: center; color: var(--primario); font-size: 2.8rem; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
@@ -56,14 +63,16 @@
                 
                 <div class="form-group">
                     <label>Tipo de Operación:</label>
-                    <select id="tipo_operacion"> <option value="sencillo">Sencillo</option>
+                    <select id="tipo_operacion">
+                        <option value="sencillo">Sencillo</option>
                         <option value="full">Full (Doble Remolque)</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Tipo de Caja:</label>
-                    <select id="tipo_caja"> <option value="seca">Caja Seca</option>
+                    <select id="tipo_caja">
+                        <option value="seca">Caja Seca</option>
                         <option value="refrigerado">Refrigerada (Thermo)</option>
                     </select>
                 </div>
@@ -88,8 +97,8 @@
             <div>
                 <div class="section-title"><i class="fas fa-gas-pump"></i> Insumos y Ruta</div>
                 <div class="row-inputs">
-                    <div class="form-group"><label>Origen:</label><input type="text" placeholder="Ciudad Origen"></div>
-                    <div class="form-group"><label>Destino:</label><input type="text" placeholder="Ciudad Destino"></div>
+                    <div class="form-group"><label>Origen:</label><input type="text" id="origen" placeholder="Ciudad Origen"></div>
+                    <div class="form-group"><label>Destino:</label><input type="text" id="destino" placeholder="Ciudad Destino"></div>
                 </div>
                 <div class="row-inputs">
                     <div class="form-group"><label>Kilómetros:</label><input type="number" id="km" value="0"></div>
@@ -124,6 +133,9 @@
         </div>
 
         <button class="btn-calcular" onclick="calcularTarifa()">CALCULAR TARIFA FINAL</button>
+        <button id="btn-guardar" class="btn-guardar" onclick="guardarEnHistorial()">
+            <i class="fas fa-save"></i> GUARDAR EN HISTORIAL
+        </button>
         
         <div class="resultado-final" id="res_tarifa">$0.00</div>
     </div>
