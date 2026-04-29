@@ -20,9 +20,9 @@ async function cargarPreciosCatalogo() {
             document.getElementById('precio_diesel_manual').value = precioBD;
         }
 
-        console.log("✅ Catálogo cargado y sincronizado");
+        console.log("Catálogo cargado y sincronizado");
     } catch (err) {
-        console.error("❌ Error cargando catálogo:", err);
+        console.error("Error cargando catálogo:", err);
         alert("Atención: Los valores del catálogo no se cargaron. Los cálculos podrían ser incorrectos.");
     }
 }
@@ -35,38 +35,45 @@ function getVal(conceptoNombre) {
 
 // 2. LÓGICA PRINCIPAL DE CÁLCULO
 async function calcularTarifa() {
-    // --- 1. CAPTURA DE ENTRADAS (Asegurando que sean números) ---
+    // --- 1. CAPTURA DE ENTRADAS DEL HTML ---
+    // Convertimos a Number para evitar que se concatenen como texto
     const km = Number(document.getElementById('km').value) || 0;
     const diasViaje = Number(document.getElementById('dias').value) || 1;
     const casetas = Number(document.getElementById('casetas').value) || 0;
     const precioDiesel = Number(document.getElementById('precio_diesel_manual').value) || 0;
     const rendimiento = Number(document.getElementById('rendimiento').value) || 2.5;
     const utilidadPorcentaje = Number(document.getElementById('utilidad_input').value) || 0;
-    
-    // IMPORTANTE: Captura de recolección corregida
     const recoleccion = Number(document.getElementById('recoleccion').value) || 0;
 
-    const tipoOperacion = document.getElementById('tipo_operacion').value; 
-    const tipoCaja = document.getElementById('tipo_caja').value;           
-    const tipoUnidad = document.getElementById('tipo_unidad').value;       
-    const monedaSeleccionada = document.querySelector('input[name="moneda"]:checked').value;
+    // CAPTURA DE SELECTORES (Asegúrate que los IDs coincidan con tu HTML)
+    const tipoOperacion = document.getElementById('tipo_operacion').value; // 'sencillo' o 'full'
+    const tipoCaja = document.getElementById('tipo_caja').value;           // 'seca' o 'refrigerado'
+    const tipoUnidad = document.getElementById('tipo_unidad').value;       // 'propia' o 'renta'
     const tieneTransfer = document.querySelector('input[name="transfer"]:checked').value === 'si';
+    const monedaSeleccionada = document.querySelector('input[name="moneda"]:checked').value;
 
+    // Validación básica
     if (km <= 0) {
         alert("Por favor, ingresa los kilómetros del viaje.");
         return;
     }
 
-    // --- 2. FACTORES Y CARGOS EXTRA (De la Base de Datos) ---
-    const factorOperacion = (tipoOperacion === 'full') ? getVal('factor_full') : 1;
+    // --- 2. CARGOS Y FACTORES DESDE LA BASE DE DATOS (getVal) ---
+    
+    // Si la unidad es renta, toma 'costo_renta', si no, es 0
+    const cargoRenta = (tipoUnidad === 'renta') ? getVal('costo_renta') : 0;
+    
+    // Si es refrigerado, suma el extra y calcula el diesel del thermo
     const extraCaja = (tipoCaja === 'refrigerado') ? getVal('extra_refrigerado') : 0;
     const dieselThermoTotal = (tipoCaja === 'refrigerado') ? (getVal('litros_diesel_thermo') * precioDiesel) : 0;
-    const cargoRenta = (tipoUnidad === 'renta') ? getVal('costo_renta') : 0;
-    const montoTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
+
+    // Factor de operación (1.4 si es full, 1 si es sencillo)
+    const factorOperacion = (tipoOperacion === 'full') ? getVal('factor_full') : 1;
 
     // --- 3. CÁLCULOS OPERATIVOS ---
     const dieselTracto = (km / rendimiento) * precioDiesel;
 
+    // Conceptos por Kilómetro
     const gastosPorKm = (
         getVal('administracion') + 
         getVal('direccion_ogoi') + 
@@ -75,6 +82,7 @@ async function calcularTarifa() {
         getVal('mantenimiento')
     ) * km;
 
+    // Conceptos por Día
     const gastosPorDia = (
         getVal('carga_laboral') + 
         getVal('depreciacion') + 
@@ -84,36 +92,38 @@ async function calcularTarifa() {
         getVal('seguro_tracto')
     ) * diasViaje;
 
-    // --- 4. TOTALIZACIÓN FINAL ---
+    const montoTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
 
-    // Suma de todos los costos incluyendo RECOLECCIÓN
+    // --- 4. TOTALIZACIÓN ---
+
+    // Suma Base: Incluye todos los costos directos y extras
     let sumaBase = (
         dieselTracto + 
         dieselThermoTotal + 
         gastosPorKm + 
         gastosPorDia + 
         casetas + 
-        montoTransfer + 
-        recoleccion + // <--- Aquí se suma la recolección
+        recoleccion + 
         extraCaja + 
-        cargoRenta
+        cargoRenta + 
+        montoTransfer
     );
 
-    // Aplicar factor Full si es el caso
+    // Aplicar multiplicador si es FULL
     sumaBase = sumaBase * factorOperacion;
 
-    // Pago Operador (SumaBase * Factor Sueldo)
+    // Sueldo del operador (Base * 0.035)
     const pagoOperador = sumaBase * getVal('sueldo_operador_base');
 
-    // Costo Total Final
+    // Costo Total
     const costoTotalMXN = sumaBase + pagoOperador;
 
-    // Tarifa con Utilidad
+    // Aplicar margen de utilidad
     const tarifaFinalMXN = costoTotalMXN * (1 + (utilidadPorcentaje / 100));
 
-    // --- 5. VISUALIZACIÓN ---
+    // --- 5. CONVERSIÓN Y SALIDA ---
     let valorFinal = tarifaFinalMXN;
-    let tc = getVal('tipo_de_cambio') || 18.50;
+    const tc = getVal('tipo_de_cambio') || 18.50;
 
     if (monedaSeleccionada === 'usd') {
         valorFinal = tarifaFinalMXN / tc;
@@ -121,10 +131,12 @@ async function calcularTarifa() {
 
     const simbolo = (monedaSeleccionada === 'usd') ? 'USD $' : '$';
     
+    // Mostrar en el HTML con formato de moneda
     document.getElementById('res_tarifa').innerText = `${simbolo}${valorFinal.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     })}`;
 
-    console.log("Cálculo con recolección de:", recoleccion);
+    // Log para depuración en consola
+    console.log("Cálculo finalizado con éxito.");
 }
