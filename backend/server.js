@@ -77,21 +77,24 @@ app.post('/api/login', async (req, res) => {
 app.post('/api/historial_calculo', async (req, res) => {
     try {
         const datos = req.body;
-        // IMPORTANTE: El nombre de la tabla debe ser exacto a Supabase
+        console.log("Intentando insertar en historial_calculos...");
+
         const { data, error } = await supabase
-            .from('historial_calculos') // <--- Aquí agregamos la 's'
+            .from('historial_calculos') // Asegúrate que tenga la 's'
             .insert([datos]);
 
         if (error) {
-            console.error("Error de Supabase:", error);
+            // ESTO ES CLAVE: Ver el error real en tu terminal
+            console.error("DETALLE DEL ERROR DE SUPABASE:", error);
             return res.status(400).json({ error: error.message });
         }
-        res.status(200).json({ message: "Guardado en historial_calculos" });
+
+        res.status(200).json({ message: "Guardado correctamente" });
     } catch (err) {
-        res.status(500).json({ error: "Error interno" });
+        console.error("ERROR CRÍTICO:", err);
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 });
-
 // Comodín para SPA (Single Page Application)
 app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend', 'index.html'));

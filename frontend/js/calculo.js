@@ -77,21 +77,42 @@ async function calcularTarifa() {
 
         // 4. GUARDAR DATOS EN LA VARIABLE GLOBAL
         datosParaHistorial = {
-            origen: getElValue('origen'),
-            destino: getElValue('destino'),
-            km: km,
-            tarifa_final: valorFinal,
-            moneda: monedaSeleccionada,
+            fecha: new Date().toISOString(),
+            origen: document.getElementById('origen').value || "N/A",
+            destino: document.getElementById('destino').value || "N/A",
+            unidad: tipoUnidad,
             tipo_viaje: tipoViaje,
             tipo_caja: tipoCaja,
-            tipo_operacion: tipoOperacion,
+            km: km,
+            peso: 0, 
             costo_operativo: costoTotalMXN,
+            utilidad: tarifaFinalMXN - costoTotalMXN,
+            tarifa_final: valorFinal,
+            usuario_nombre: "", 
+            dias_viaje: diasViaje,
+            costo_recoleccion: recoleccion,
+            con_transfer: tieneTransfer ? 'si' : 'no',
+            moneda: monedaSeleccionada,
+            tipo_operacion: tipoOperacion,
+            monto_casetas: casetas,
+            precio_diesel: precioDiesel,
+            rendimiento: rendimiento,
             porcentaje_utilidad: utilidadPorcentaje,
-            usuario_nombre: "Alex Calderon",
-            fecha: new Date().toISOString()
-            // (puedes agregar los demás campos de desglose aquí)
+            tarjeta_operador: pagoOperador,
+            
+            // Desglose usando los nombres exactos de tu tabla Catálogo
+            carga_laboral: getVal('carga_laboral') * diasViaje,
+            mantenimiento: getVal('mantenimiento') * km,
+            llantas: getVal('llantas') * km,
+            seguro_tracto: getVal('seguro_tracto') * diasViaje,
+            seguro_caja: getVal('seguro_caja') * diasViaje,
+            depreciacion: getVal('depreciacion') * km, // Nota: Según tu tabla es Variable_KM
+            rastreo_satelital: getVal('rastreo_sat') * diasViaje, // JS usa 'rastreo_sat' del catálogo y guarda en 'rastreo_satelital' de la BD
+            diversos_trans: getVal('diversos_trans') * km,
+            administracion: getVal('administracion') * diasViaje,
+            infraestructura: getVal('infraestructura') * diasViaje,
+            direccion_ogoi: getVal('direccion_ogoi') * diasViaje
         };
-
         // --- EL PASO FINAL: MOSTRAR EL BOTÓN ---
         const btnGuardar = document.getElementById('btn-guardar');
         if (btnGuardar) {
