@@ -1,5 +1,6 @@
 const API_URL = window.location.origin;
 let catalogoGlobal = [];
+let datosParaHistorial = null; 
 
 // 1. CARGAR DATOS AL INICIAR
 document.addEventListener('DOMContentLoaded', async () => {
@@ -29,10 +30,7 @@ function getVal(conceptoNombre) {
     return item ? parseFloat(item.valor) : 0;
 }
 
-// 2. LÓGICA DE CÁLCULO ACTUALIZADA
-a// Variable global para retener los datos después de calcular
-let datosParaHistorial = null;
-
+// 2. LÓGICA DE CÁLCULO
 async function calcularTarifa() {
     try {
         // 1. CAPTURA DE INPUTS
@@ -67,7 +65,7 @@ async function calcularTarifa() {
         const cRenta = (tipoUnidad === 'renta') ? getVal('costo_renta') : 0;
         const mTransfer = tieneTransfer ? getVal('transfer_costo') : 0;
 
-        // 4. CÁLCULOS OPERATIVOS (Desglose para historial)
+        // 4. CÁLCULOS OPERATIVOS
         const d_tracto = (km / rendimiento) * precioDiesel;
         const g_km = (getVal('administracion') + getVal('direccion_ogoi') + getVal('diversos_trans') + getVal('llantas') + getVal('mantenimiento')) * km;
         const g_dia = (getVal('carga_laboral') + getVal('depreciacion') + getVal('infraestructura') + getVal('rastreo_sat') + getVal('seguro_caja') + getVal('seguro_tracto')) * diasViaje;
@@ -96,7 +94,7 @@ async function calcularTarifa() {
             tipo_caja: tipoCaja,
             tipo_operacion: tipoOperacion,
             km: km,
-            peso: 0, // Puedes agregar un input para esto si lo requieres
+            peso: 0,
             costo_operativo: costoTotalMXN,
             utilidad: tarifaFinalMXN - costoTotalMXN,
             tarifa_final: valorFinal,
@@ -110,7 +108,6 @@ async function calcularTarifa() {
             rendimiento: rendimiento,
             porcentaje_utilidad: utilidadPorcentaje,
             tarjeta_operador: pagoOperador,
-            // Desglose detallado desde Catálogo
             carga_laboral: getVal('carga_laboral') * diasViaje,
             mantenimiento: getVal('mantenimiento') * km,
             llantas: getVal('llantas') * km,
@@ -144,10 +141,10 @@ async function guardarEnHistorial() {
         });
 
         if (res.ok) {
-            alert("✅ Cotización guardada en el historial.");
+            alert("Cotización guardada en el historial.");
             document.getElementById('btn-guardar').style.display = 'none';
         } else {
-            alert("❌ No se pudo guardar. Revisa la conexión con el servidor.");
+            alert("No se pudo guardar. Revisa la conexión con el servidor.");
         }
     } catch (err) {
         console.error("Error al guardar:", err);
