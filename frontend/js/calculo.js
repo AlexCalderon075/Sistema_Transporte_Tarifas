@@ -54,7 +54,8 @@ async function calcularTarifa() {
 
     // --- B. VALORES DEL CATÁLOGO ---
     const tc = getVal('tipo_de_cambio') || 18.50;
-    const sueldoOperadorBase = getVal('sueldo_operador_base'); // Ejemplo: 0.15 (15%)
+    
+    const sueldoOperadorBase = getVal('sueldo_operador_base') / 100; // Esto convierte el 3.5 en 0.035
 
     // --- C. CÁLCULOS OPERATIVOS ---
     const costoDieselTracto = (km / rendimiento) * precioDieselManual;
